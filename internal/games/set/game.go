@@ -215,7 +215,7 @@ func (g *Game) ExpandBoard() bool {
 //
 // If the given set is valid and the cards are all still present on the board,
 // the given set is copied to the Game's ClaimedSet (so that it can be displayed
-// prior to the next rount) and is added to the given player's collection and
+// prior to the next round) and is added to the given player's collection and
 // nil is returned.
 func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 	if g.ClaimedUsername != "" {
@@ -245,7 +245,7 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 // NextRound transitions a game in Claimed Set state to the next round
 func (g *Game) NextRound() error {
 	if len(g.ClaimedSet) != SetLen {
-		return &InvalidStateError{"ClaimSet", "round not yet claimed"}
+		return &InvalidStateError{"NextRound", "round not yet claimed"}
 	}
 	if len(g.Deck) < 3 {
 		panic(fmt.Sprintf("not enough remaining cards: %v", len(g.Deck)))
