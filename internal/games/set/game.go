@@ -103,7 +103,7 @@ func (b Board) FindSet() []*Card {
 		for j := i + 1; j <= len(b)-1; j++ {
 			c2 := b[j]
 			for k := j + 1; k <= len(b); k++ {
-				c3 := b[j]
+				c3 := b[k]
 				if IsSet(c1, c2, c3) {
 					return []*Card{c1, c2, c3}
 				}

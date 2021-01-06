@@ -1,9 +1,29 @@
 package set
 
 import (
-	"fmt"
 	"testing"
 )
+
+func TestIsSet(t *testing.T) {
+	var (
+		c1, c2, c3 *Card
+	)
+
+	// not a set
+	c1 = &Card{Solid, Triangle, Red, 1}
+	c2 = &Card{Solid, Squiggle, Red, 1}
+	c3 = &Card{Stripe, Squiggle, Purple, 1}
+	if IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
+	}
+	// Shading same, shape different, color diffent, count same
+	c1 = &Card{Solid, Triangle, Purple, 1}
+	c2 = &Card{Solid, Squiggle, Red, 1}
+	c2 = &Card{Solid, Oval, Green, 1}
+	if IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
+	}
+}
 
 func TestGame(t *testing.T) {
 	usernames := []string{"Joe", "Natasha", "Maria", "Frank"}
@@ -43,7 +63,6 @@ func TestGame(t *testing.T) {
 		ok          bool
 	)
 	// Can only go to next round if there is a claimed set
-	fmt.Printf("Calling NextRound\n")
 	err = g.NextRound()
 	if invStateErr, ok = err.(*InvalidStateError); !ok {
 		t.Errorf("expected InvalidStateError, got: %v", err)
@@ -88,10 +107,8 @@ func TestGame(t *testing.T) {
 
 // Return a set on the board, expanding until one is found
 func (g *Game) testFindSet() []*Card {
-	fmt.Printf("FindSet\n")
 	for true {
 		s := g.Board.FindSet()
-		fmt.Printf("s: %#v\n", s)
 		if len(s) == SetLen {
 			return s
 		}
