@@ -1,2 +1,2 @@
 # boredgames
-Multiplayer web board games.
+Multiplayer web board games. Work in progress.
