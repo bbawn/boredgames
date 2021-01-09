@@ -8,14 +8,14 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Solid-0]
+	_ = x[Filled-0]
 	_ = x[Stripe-1]
 	_ = x[Outline-2]
 }
 
-const _Shading_name = "SolidStripeOutline"
+const _Shading_name = "FilledStripeOutline"
 
-var _Shading_index = [...]uint8{0, 5, 11, 18}
+var _Shading_index = [...]uint8{0, 6, 12, 19}
 
 func (i Shading) String() string {
 	if i >= Shading(len(_Shading_index)-1) {

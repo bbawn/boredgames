@@ -3,6 +3,7 @@ package set
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 )
 
 const (
@@ -15,7 +16,7 @@ const (
 type Shading byte
 
 const (
-	Solid Shading = iota
+	Filled Shading = iota
 	Stripe
 	Outline
 )
@@ -48,6 +49,13 @@ type Card struct {
 	Shape   Shape
 	Color   Color
 	Count   byte
+}
+
+func (c *Card) String() string {
+	if c == nil {
+		return "----"
+	}
+	return c.Shading.String()[0:1] + c.Shape.String()[0:1] + c.Color.String()[0:1] + strconv.Itoa(int(c.Count))
 }
 
 // CardBase3 is representation of a card as a 4-digit, base-3 integer
@@ -265,21 +273,23 @@ func (g *Game) NextRound() error {
 	if len(g.ClaimedSet) != SetLen {
 		return &InvalidStateError{"NextRound", "round not yet claimed"}
 	}
-	if len(g.Deck) < 3 {
-		panic(fmt.Sprintf("not enough remaining cards: %v", len(g.Deck)))
-	}
 	for i, _ := range g.Board {
-		if g.Board[i] == g.ClaimedSet[0] ||
-			g.Board[i] == g.ClaimedSet[1] ||
-			g.Board[i] == g.ClaimedSet[2] {
+		if g.Board[i] == nil {
 			if len(g.Deck) > 0 {
 				// Card remain in Deck, replace old set card with deck card
 				g.Board[i] = g.Deck.Pop()
-			} else {
-				// Empty Deck, just remove old set cards
-				g.Board = append(g.Board[:i], g.Board[i+1:]...)
 			}
 		}
+	}
+	if len(g.Deck) == 0 {
+		// Empty Deck, just remove old set cards
+		newBoard := []*Card{}
+		for i, _ := range g.Board {
+			if g.Board[i] != nil {
+				newBoard = append(newBoard, g.Board[i])
+			}
+		}
+		g.Board = newBoard
 	}
 	g.ClaimedUsername = ""
 	g.ClaimedSet = []*Card{}
