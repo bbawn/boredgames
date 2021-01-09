@@ -70,6 +70,10 @@ func CardToCardBase3(c *Card) CardBase3 {
 
 // IsSet returns true if the given cards are a set, false otherwise
 func IsSet(c1, c2, c3 *Card) bool {
+	if *c1 == *c2 || *c2 == *c3 || *c1 == *c3 {
+		// Duplicates are not even a valid non-set, warn here?
+		return false
+	}
 	return setMatch(byte(c1.Shading), byte(c2.Shading), byte(c3.Shading)) &&
 		setMatch(byte(c1.Shape), byte(c2.Shape), byte(c3.Shape)) &&
 		setMatch(byte(c1.Color), byte(c2.Color), byte(c3.Color)) &&
@@ -79,7 +83,8 @@ func IsSet(c1, c2, c3 *Card) bool {
 // setMatch return true if the given bytes are a "match" by Set rules:
 // meaning they are either all the same or all different
 func setMatch(b1, b2, b3 byte) bool {
-	return (b1 == b2 && b2 == b3) || (b1 != b2 && b2 != b3)
+	ret := (b1 == b2 && b2 == b3) || (b1 != b2 && b2 != b3 && b1 != b3)
+	return ret
 }
 
 // Deck is a deck of set cards
@@ -95,17 +100,24 @@ func (d *Deck) Pop() *Card {
 // Board is a layout of cards
 type Board []*Card
 
-// FindSet returns a set from the given board or empty array if there are none
-func (b Board) FindSet() []*Card {
+// FindSet returns a set or non-set from the given board or empty array if
+// there are none
+func (b Board) FindSet(set bool) []*Card {
 	// Enumerate each set on board
 	for i := 0; i < len(b)-2; i++ {
 		c1 := b[i]
-		for j := i + 1; j <= len(b)-1; j++ {
-			c2 := b[j]
-			for k := j + 1; k <= len(b); k++ {
-				c3 := b[k]
-				if IsSet(c1, c2, c3) {
-					return []*Card{c1, c2, c3}
+		if c1 != nil {
+			for j := i + 1; j < len(b)-1; j++ {
+				c2 := b[j]
+				if c2 != nil {
+					for k := j + 1; k < len(b); k++ {
+						c3 := b[k]
+						if c3 != nil {
+							if IsSet(c1, c2, c3) == set {
+								return []*Card{c1, c2, c3}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -116,7 +128,7 @@ func (b Board) FindSet() []*Card {
 // FindCard returns the index of the given card on the Board or -1 if not found
 func (b Board) FindCard(c *Card) int {
 	for i := 0; i < len(b); i++ {
-		if *b[i] == *c {
+		if b[i] != nil && *b[i] == *c {
 			return i
 		}
 	}
@@ -149,7 +161,8 @@ func (e InvalidArgError) Error() string {
 	return fmt.Sprintf("Invalid value: %s for arg: %s", e.Arg, e.Value)
 }
 
-// InvalidStateError indicates the
+// InvalidStateError indicates the Method was called for an object that is not in
+// the right state for it
 type InvalidStateError struct {
 	Method  string
 	Details string
@@ -227,6 +240,8 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 	}
 	if !IsSet(c1, c2, c3) {
 		if len(p.Sets) > 0 {
+			penaltySet := p.Sets[len(p.Sets)-1]
+			g.Deck = append(g.Deck, penaltySet...)
 			p.Sets = p.Sets[:len(p.Sets)-1]
 		}
 		return &InvalidArgError{"set", fmt.Sprintf("%v %v %v", c1, c2, c3)}
@@ -239,6 +254,9 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 		}
 		g.Board[i] = nil
 	}
+	p.Sets = append(p.Sets, set)
+	g.ClaimedUsername = username
+	g.ClaimedSet = set
 	return nil
 }
 

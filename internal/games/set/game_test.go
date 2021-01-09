@@ -1,6 +1,8 @@
 package set
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -9,6 +11,14 @@ func TestIsSet(t *testing.T) {
 		c1, c2, c3 *Card
 	)
 
+	// duplicate card, not even a non-set
+	c1 = &Card{Solid, Triangle, Red, 1}
+	c2 = &Card{Solid, Triangle, Red, 1}
+	c3 = &Card{Solid, Triangle, Purple, 1}
+	if IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
+	}
+
 	// not a set
 	c1 = &Card{Solid, Triangle, Red, 1}
 	c2 = &Card{Solid, Squiggle, Red, 1}
@@ -16,12 +26,88 @@ func TestIsSet(t *testing.T) {
 	if IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
 	}
-	// Shading same, shape different, color diffent, count same
+
+	// Shading same, shape different, color different, count different
 	c1 = &Card{Solid, Triangle, Purple, 1}
-	c2 = &Card{Solid, Squiggle, Red, 1}
-	c2 = &Card{Solid, Oval, Green, 1}
-	if IsSet(c1, c2, c3) {
-		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
+	c2 = &Card{Solid, Squiggle, Red, 2}
+	c3 = &Card{Solid, Oval, Green, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+	// Shading different, shape same, color different, count different
+	c1 = &Card{Solid, Squiggle, Purple, 1}
+	c2 = &Card{Stripe, Squiggle, Red, 2}
+	c3 = &Card{Outline, Squiggle, Green, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+	// Shading different, shape different, color same, count different
+	c1 = &Card{Solid, Triangle, Green, 1}
+	c2 = &Card{Stripe, Squiggle, Green, 2}
+	c3 = &Card{Outline, Oval, Green, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+	// Shading different, shape different, color different, count same
+	c1 = &Card{Solid, Triangle, Purple, 1}
+	c2 = &Card{Stripe, Squiggle, Red, 1}
+	c3 = &Card{Outline, Oval, Green, 1}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+
+	// Shading same, shape same, color different, count different
+	c1 = &Card{Solid, Oval, Purple, 1}
+	c2 = &Card{Solid, Oval, Red, 2}
+	c3 = &Card{Solid, Oval, Green, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+	// Shading different, shape same, color same, count different
+	c1 = &Card{Solid, Oval, Red, 1}
+	c2 = &Card{Stripe, Oval, Red, 2}
+	c3 = &Card{Outline, Oval, Red, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+	// Shading different, shape different, color same, count same
+	c1 = &Card{Solid, Triangle, Purple, 2}
+	c2 = &Card{Stripe, Squiggle, Purple, 2}
+	c3 = &Card{Outline, Oval, Purple, 2}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+
+	// Shading different, shape same, color same, count same
+	c1 = &Card{Solid, Oval, Red, 3}
+	c2 = &Card{Stripe, Oval, Red, 3}
+	c3 = &Card{Outline, Oval, Red, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+
+	// Shading same, shape different, color same, count same
+	c1 = &Card{Stripe, Oval, Red, 3}
+	c2 = &Card{Stripe, Triangle, Red, 3}
+	c3 = &Card{Stripe, Squiggle, Red, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+
+	// Shading same, shape same, color different, count same
+	c1 = &Card{Solid, Oval, Red, 3}
+	c2 = &Card{Solid, Oval, Green, 3}
+	c3 = &Card{Solid, Oval, Purple, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
+	}
+
+	// Shading same, shape same, color same, count different
+	c1 = &Card{Solid, Oval, Red, 1}
+	c2 = &Card{Solid, Oval, Red, 2}
+	c3 = &Card{Solid, Oval, Red, 3}
+	if !IsSet(c1, c2, c3) {
+		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 }
 
@@ -59,7 +145,7 @@ func TestGame(t *testing.T) {
 	var (
 		invStateErr *InvalidStateError
 		invArgErr   *InvalidArgError
-		set         []*Card
+		s           []*Card
 		ok          bool
 	)
 	// Can only go to next round if there is a claimed set
@@ -76,8 +162,8 @@ func TestGame(t *testing.T) {
 	}
 
 	// Claim with invalid username
-	set = g.testFindSet()
-	err = g.ClaimSet("Jane", set[0], set[1], set[2])
+	s = g.testFindSet()
+	err = g.ClaimSet("Jane", s[0], s[1], s[2])
 	if invArgErr, ok = err.(*InvalidArgError); !ok {
 		t.Errorf("expected InvalidArgError, got: %v", err)
 	}
@@ -89,26 +175,49 @@ func TestGame(t *testing.T) {
 	}
 
 	// Claim with non-set
-	/*
-		err = g.ClaimSet("Joe", s[0], s[1], s[2])
-		if invStateErr, ok := err.(*InvalidArgError); !ok {
-			t.Errorf("expected InvalidArgError, got: %v", err)
-		}
-		if invArgErr.Arg != "username" {
-			t.Errorf("expected Arg: username, got: %v", invArgErr.Arg)
-		}
-		if invArgErr.Value != "Jane" {
-			t.Errorf("expected Value: Jane, got: %v", invArgErr.Value)
-		}
+	s = g.Board.FindSet(false)
+	err = g.ClaimSet("Joe", s[0], s[1], s[2])
+	if invArgErr, ok = err.(*InvalidArgError); !ok {
+		t.Errorf("expected InvalidArgError, got: %v", err)
+	}
+	if invArgErr.Arg != "set" {
+		t.Errorf("expected Arg: set, got: %v", invArgErr.Arg)
+	}
+	if invArgErr.Value != fmt.Sprintf("%v %v %v", s[0], s[1], s[2]) {
+		t.Errorf("expected Value: Jane, got: %v", invArgErr.Value)
+	}
 
-		// while s :=
-	*/
+	for s = g.testFindSet(); len(s) > 0; s = g.testFindSet() {
+		u := usernames[rand.Intn(len(usernames))]
+		uOldScore := len(g.Players[u].Sets)
+		err = g.ClaimSet(u, s[0], s[1], s[2])
+		if err != nil {
+			t.Errorf("expected ClaimSet to succeed, got: %v", err)
+		}
+		if g.ClaimedUsername != u {
+			t.Errorf("expected ClaimUsername to be %s, got: %s", u, g.ClaimedUsername)
+		}
+		uNewScore := len(g.Players[u].Sets)
+		if uNewScore != uOldScore+1 {
+			t.Errorf("expected uNewScore to be %d, got: %d", uOldScore+1, uNewScore)
+		}
+		err = g.NextRound()
+		if err != nil {
+			t.Errorf("expected ClaimSet to succeed, got: %v", err)
+		}
+		if g.ClaimedUsername != "" {
+			t.Errorf("expected ClaimUsername to be empty, got: %s", g.ClaimedUsername)
+		}
+	}
+	if len(g.Deck) != 0 {
+		t.Errorf("expected Deck to be empty, got: %d", len(g.Deck))
+	}
 }
 
 // Return a set on the board, expanding until one is found
 func (g *Game) testFindSet() []*Card {
 	for true {
-		s := g.Board.FindSet()
+		s := g.Board.FindSet(true)
 		if len(s) == SetLen {
 			return s
 		}
