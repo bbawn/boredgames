@@ -6,7 +6,13 @@ import (
 	"testing"
 )
 
-const nTestGames = 256
+const (
+	nTestGames = 256
+)
+
+func getUsernames() []string {
+	return []string{"Joe", "Natasha", "Maria", "Frank"}
+}
 
 func TestCardString(t *testing.T) {
 	c1 := &Card{Filled, Triangle, Red, 1}
@@ -121,8 +127,8 @@ func TestIsSet(t *testing.T) {
 	}
 }
 
-func TestGame(t *testing.T) {
-	usernames := []string{"Joe", "Natasha", "Maria", "Frank"}
+func TestInvalidGames(t *testing.T) {
+	usernames := getUsernames()
 	g, err := NewGame(usernames)
 	if err != nil {
 		t.Errorf("expected err: %v to be nil", err)
@@ -196,16 +202,21 @@ func TestGame(t *testing.T) {
 	if invArgErr.Value != fmt.Sprintf("%v %v %v", s[0], s[1], s[2]) {
 		t.Errorf("expected Value: Jane, got: %v", invArgErr.Value)
 	}
+}
 
+func TestValidGames(t *testing.T) {
 	for i := 0; i < nTestGames; i++ {
-		// t.Log("Game:", i)
-		fmt.Println("Game:", i)
+		t.Log("Game:", i)
+		usernames := getUsernames()
 		g, err := NewGame(usernames)
-		for s = g.testFindSet(); len(s) > 0; s = g.testFindSet() {
-			fmt.Println("Board:", g.Board)
-			fmt.Println("Deck len:", len(g.Deck))
+		if err != nil {
+			t.Errorf("expected NewGame() to succeed, got: %v", err)
+		}
+		for s := g.testFindSet(); len(s) > 0; s = g.testFindSet() {
+			t.Log("Board:", g.Board)
+			t.Log("Deck len:", len(g.Deck))
 			u := usernames[rand.Intn(len(usernames))]
-			fmt.Printf("Username: %s found set: %v %v %v\n", u, s[0], s[1], s[2])
+			t.Logf("Username: %s found set: %v %v %v", u, s[0], s[1], s[2])
 
 			uOldScore := len(g.Players[u].Sets)
 			err = g.ClaimSet(u, s[0], s[1], s[2])
