@@ -1,4 +1,4 @@
-module github.com/bbawn/setgame
+module github.com/bbawn/boredgames
 
 go 1.15
 

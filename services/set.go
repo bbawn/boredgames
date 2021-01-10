@@ -10,5 +10,5 @@ func SetContainerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetObjectHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "<h1>SetContainerHandler</h1><div>foo</div>")
+	fmt.Fprintf(w, "<h1>SetObjectHandler</h1><div>bar</div>")
 }

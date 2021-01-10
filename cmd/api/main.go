@@ -10,7 +10,7 @@ import (
 
 var addr = flag.String("addr", ":8080", "http service address")
 
-func newServeMux() (*http.ServeMux, chan struct{}) {
+func newServeMux() *http.ServeMux {
 	// XXX See https://golang.org/doc/articles/wiki/ for next steps...
 	mux := http.NewServeMux()
 	mux.Handle("/set", http.HandlerFunc(services.SetContainerHandler))
@@ -24,7 +24,8 @@ func main() {
 	mux := newServeMux()
 	srv := &http.Server{Addr: *addr, Handler: mux}
 
+	log.Printf("INFO: ListenAndServe(): addr: %s", addr)
 	if err := srv.ListenAndServe(); err != nil {
-		log.Printf("INFO: hashservice: ListenAndServe(): %s", err)
+		log.Printf("WARN: api: ListenAndServe() failed: %s", err)
 	}
 }
