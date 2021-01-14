@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -27,43 +27,58 @@ func SetObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("SetObjectHandler: r %#v", r)
 	id, verb, err := parseObjectURL(r.URL.Path)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("Error parsing set %s: %v", r.URL.Path, err), http.StatusBadRequest)
 		return
 	}
 	log.Printf("SetObjectHandler: id %#v, verb %s", id, verb)
 	switch r.Method {
 	case "GET":
-		getSet(id)
+		err = getSet(id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error retrieving set %s: %v", id, err), http.StatusBadRequest)
+			return
+		}
 	case "DEL":
-		deleteSet(id)
+		err = deleteSet(id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error deleting set %s: %v", id, err), http.StatusBadRequest)
+			return
+		}
 	default:
+		http.Error(w, fmt.Sprintf("Invalid method %s: %v", r.Method, err), http.StatusBadRequest)
+		return
 	}
-	fmt.Fprintf(w, "<h1>SetObjectHandler</h1><div>bar</div>")
+	fmt.Fprintf(w, "<h1>SetObjectHandler</h1><div>%s</div>", id)
 }
 
-var validObjectPath = regexp.MustCompile(`^/set/(\w+)/(\w+)$`)
-
 func parseObjectURL(path string) (*uuid.UUID, string, error) {
-	m := validObjectPath.FindStringSubmatch(path)
-	if m == nil {
-		return nil, "", fmt.Errorf("invalid object URL path: %s", path)
+	comps := strings.Split(path, "/")
+	if len(comps) > 3 || len(comps) < 2 {
+		return nil, "", fmt.Errorf("Invalid set path %s", path)
 	}
+
 	// XXX this parses anything: "foo" returns all 0 uuid. WTF? Consider bson.ObjectID...
-	uuid, err := uuid.Parse(m[1])
-	if m == nil {
+	uuid, err := uuid.Parse(comps[1])
+	if err == nil {
 		return nil, "", err
 	}
-	verb := m[2]
+	var verb string
+	if len(comps) > 2 {
+		verb = comps[2]
+	}
 	return &uuid, verb, nil
 }
 
-func createSet() {
+func createSet() error {
+	return nil
 }
 
-func deleteSet(uuid *uuid.UUID) {
+func deleteSet(uuid *uuid.UUID) error {
+	return nil
 }
 
-func getSet(uuid *uuid.UUID) {
+func getSet(uuid *uuid.UUID) error {
+	return nil
 }
 
 func listSets() {
