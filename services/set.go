@@ -4,82 +4,55 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
+	"github.com/bbawn/boredgames/internal/router"
 	"github.com/google/uuid"
 )
 
-var Uuid uuid.UUID
-
-func SetContainerHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("SetContainerHandler: r %#v", r)
-	switch r.Method {
-	case "GET":
-		listSets()
-	case "POST":
-		createSet()
-	default:
-	}
-	fmt.Fprintf(w, "<h1>SetContainerHandler</h1><div>foo</div>")
+func ListSets(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "<h1>ListSets</h1><div>foo</div>")
 }
 
-func SetObjectHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("SetObjectHandler: r %#v", r)
-	id, verb, err := parseObjectURL(r.URL.Path)
+func CreateSet(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "<h1>CreateSet</h1><div>foo</div>")
+}
+
+func GetSet(w http.ResponseWriter, r *http.Request) {
+	uuid, err := uuid.Parse(router.GetField(r, 0))
+	log.Printf("parseObjectURL: uuid %v, err %v", uuid, err)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error parsing set %s: %v", r.URL.Path, err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %v", router.GetField(r, 0), err), http.StatusBadRequest)
 		return
 	}
-	log.Printf("SetObjectHandler: id %#v, verb %s", id, verb)
-	switch r.Method {
-	case "GET":
-		err = getSet(id)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error retrieving set %s: %v", id, err), http.StatusBadRequest)
-			return
-		}
-	case "DEL":
-		err = deleteSet(id)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error deleting set %s: %v", id, err), http.StatusBadRequest)
-			return
-		}
-	default:
-		http.Error(w, fmt.Sprintf("Invalid method %s: %v", r.Method, err), http.StatusBadRequest)
+	fmt.Fprintf(w, "<h1>GetSet</h1><div>%s</div>", uuid)
+}
+
+func DeleteSet(w http.ResponseWriter, r *http.Request) {
+	uuid, err := uuid.Parse(router.GetField(r, 0))
+	log.Printf("parseObjectURL: uuid %v, err %v", uuid, err)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %v", router.GetField(r, 0), err), http.StatusBadRequest)
 		return
 	}
-	fmt.Fprintf(w, "<h1>SetObjectHandler</h1><div>%s</div>", id)
+	fmt.Fprintf(w, "<h1>DeleteSet</h1><div>%s</div>", uuid)
 }
 
-func parseObjectURL(path string) (*uuid.UUID, string, error) {
-	comps := strings.Split(path, "/")
-	if len(comps) > 3 || len(comps) < 2 {
-		return nil, "", fmt.Errorf("Invalid set path %s", path)
+func ClaimSet(w http.ResponseWriter, r *http.Request) {
+	uuid, err := uuid.Parse(router.GetField(r, 0))
+	log.Printf("parseObjectURL: uuid %v, err %v", uuid, err)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %v", router.GetField(r, 0), err), http.StatusBadRequest)
+		return
 	}
+	fmt.Fprintf(w, "<h1>ClaimSet</h1><div>%s</div>", uuid)
+}
 
-	// XXX this parses anything: "foo" returns all 0 uuid. WTF? Consider bson.ObjectID...
-	uuid, err := uuid.Parse(comps[1])
-	if err == nil {
-		return nil, "", err
+func NextSet(w http.ResponseWriter, r *http.Request) {
+	uuid, err := uuid.Parse(router.GetField(r, 0))
+	log.Printf("parseObjectURL: uuid %v, err %v", uuid, err)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %v", router.GetField(r, 0), err), http.StatusBadRequest)
+		return
 	}
-	var verb string
-	if len(comps) > 2 {
-		verb = comps[2]
-	}
-	return &uuid, verb, nil
-}
-
-func createSet() error {
-	return nil
-}
-
-func deleteSet(uuid *uuid.UUID) error {
-	return nil
-}
-
-func getSet(uuid *uuid.UUID) error {
-	return nil
-}
-
-func listSets() {
+	fmt.Fprintf(w, "<h1>NextSet</h1><div>%s</div>", uuid)
 }
