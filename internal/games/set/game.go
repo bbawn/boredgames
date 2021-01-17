@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -151,6 +153,7 @@ type Player struct {
 
 // Game is an instance of a set game
 type Game struct {
+	ID              uuid.UUID
 	Players         map[string]*Player
 	Deck            Deck
 	Board           Board
@@ -180,8 +183,9 @@ func (e InvalidStateError) Error() string {
 	return fmt.Sprintf("Invalid method: %s detail: %s", e.Method, e.Details)
 }
 
-func NewGame(usernames []string) (*Game, error) {
+func NewGame(usernames ...string) (*Game, error) {
 	g := new(Game)
+	g.ID = uuid.New()
 	g.Players = make(map[string]*Player)
 	for _, u := range usernames {
 		if _, present := g.Players[u]; present {

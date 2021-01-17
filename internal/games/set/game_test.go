@@ -129,7 +129,7 @@ func TestIsSet(t *testing.T) {
 
 func TestInvalidGames(t *testing.T) {
 	usernames := getUsernames()
-	g, err := NewGame(usernames)
+	g, err := NewGame(usernames...)
 	if err != nil {
 		t.Errorf("expected err: %v to be nil", err)
 	}
@@ -208,7 +208,7 @@ func TestValidGames(t *testing.T) {
 	for i := 0; i < nTestGames; i++ {
 		t.Log("Game:", i)
 		usernames := getUsernames()
-		g, err := NewGame(usernames)
+		g, err := NewGame(usernames...)
 		if err != nil {
 			t.Errorf("expected NewGame() to succeed, got: %v", err)
 		}

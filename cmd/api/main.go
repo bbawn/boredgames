@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/http/httputil"
 
+	"github.com/bbawn/boredgames/internal/dao/ram"
 	"github.com/bbawn/boredgames/internal/router"
 	"github.com/bbawn/boredgames/services"
 )
@@ -37,12 +38,14 @@ func logHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func newTableRouter() *router.TableRouter {
 	tr := new(router.TableRouter)
-	tr.AddRoute("GET", "/sets", logHandler(http.HandlerFunc(services.ListSets)))
-	tr.AddRoute("POST", "/sets", logHandler(http.HandlerFunc(services.CreateSet)))
-	tr.AddRoute("GET", "/sets/([^/]+)", logHandler(http.HandlerFunc(services.GetSet)))
-	tr.AddRoute("DEL", "/sets/([^/]+)", logHandler(http.HandlerFunc(services.DeleteSet)))
-	tr.AddRoute("POST", "/sets/([^/]+)/claim", logHandler(http.HandlerFunc(services.ClaimSet)))
-	tr.AddRoute("POST", "/sets/([^/]+)/next", logHandler(http.HandlerFunc(services.NextSet)))
+	daoSets := ram.NewSets()
+	sets := services.NewSets(daoSets)
+	tr.AddRoute("GET", "/sets", logHandler(http.HandlerFunc(sets.List)))
+	tr.AddRoute("POST", "/sets", logHandler(http.HandlerFunc(sets.Create)))
+	tr.AddRoute("GET", "/sets/([^/]+)", logHandler(http.HandlerFunc(sets.Get)))
+	tr.AddRoute("DEL", "/sets/([^/]+)", logHandler(http.HandlerFunc(sets.Delete)))
+	tr.AddRoute("POST", "/sets/([^/]+)/claim", logHandler(http.HandlerFunc(sets.Claim)))
+	tr.AddRoute("POST", "/sets/([^/]+)/next", logHandler(http.HandlerFunc(sets.Next)))
 
 	return tr
 }
