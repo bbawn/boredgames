@@ -6,6 +6,7 @@ import (
 	"github.com/bbawn/boredgames/internal/games/set"
 )
 
+// Sets provides persistences operations for set games
 type Sets interface {
 	List() ([]*set.Game, error)
 	Insert(g *set.Game) error

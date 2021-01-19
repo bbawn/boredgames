@@ -135,6 +135,21 @@ func (b Board) FindSet(set bool) []*Card {
 	return []*Card{}
 }
 
+// FindExpandSet return a set on the board, expanding until one is found
+// or the game's deck is exhausted
+func (g *Game) FindExpandSet() []*Card {
+	for true {
+		s := g.Board.FindSet(true)
+		if len(s) == SetLen {
+			return s
+		}
+		if !g.ExpandBoard() {
+			return []*Card{}
+		}
+	}
+	panic("unreachable")
+}
+
 // FindCard returns the index of the given card on the Board or -1 if not found
 func (b Board) FindCard(c *Card) int {
 	for i := 0; i < len(b); i++ {

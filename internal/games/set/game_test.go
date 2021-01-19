@@ -178,7 +178,7 @@ func TestInvalidGames(t *testing.T) {
 	}
 
 	// Claim with invalid username
-	s = g.testFindSet()
+	s = g.FindExpandSet()
 	err = g.ClaimSet("Jane", s[0], s[1], s[2])
 	if invArgErr, ok = err.(*InvalidArgError); !ok {
 		t.Errorf("expected InvalidArgError, got: %v", err)
@@ -212,7 +212,7 @@ func TestValidGames(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected NewGame() to succeed, got: %v", err)
 		}
-		for s := g.testFindSet(); len(s) > 0; s = g.testFindSet() {
+		for s := g.FindExpandSet(); len(s) > 0; s = g.FindExpandSet() {
 			t.Log("Board:", g.Board)
 			t.Log("Deck len:", len(g.Deck))
 			u := usernames[rand.Intn(len(usernames))]
@@ -242,18 +242,4 @@ func TestValidGames(t *testing.T) {
 			t.Errorf("expected Deck to be empty, got: %d", len(g.Deck))
 		}
 	}
-}
-
-// Return a set on the board, expanding until one is found
-func (g *Game) testFindSet() []*Card {
-	for true {
-		s := g.Board.FindSet(true)
-		if len(s) == SetLen {
-			return s
-		}
-		if !g.ExpandBoard() {
-			return []*Card{}
-		}
-	}
-	panic("unreachable")
 }
