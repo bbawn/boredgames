@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/bbawn/boredgames/internal/dao/errors"
 	"github.com/bbawn/boredgames/internal/dao/ram"
 	"github.com/bbawn/boredgames/internal/games/set"
 )
@@ -36,7 +37,7 @@ func daoTest(t *testing.T, s Sets) {
 
 	// Duplicate Insert fails
 	err = s.Insert(g0)
-	_, ok := err.(AlreadyExistsError)
+	_, ok := err.(errors.AlreadyExistsError)
 	if !ok {
 		t.Errorf("Expected err %s to be of type AlreadyExistsError", err)
 	}
@@ -98,21 +99,21 @@ func daoTest(t *testing.T, s Sets) {
 
 	// Retrieve non-existing game
 	g, err = s.Get(g0.ID)
-	_, ok = err.(NotFoundError)
+	_, ok = err.(errors.NotFoundError)
 	if !ok {
 		t.Errorf("Expected Get err %s to be of type NotFoundError", err)
 	}
 
 	// Update non-existing game
 	err = s.Update(g0)
-	_, ok = err.(NotFoundError)
+	_, ok = err.(errors.NotFoundError)
 	if !ok {
 		t.Errorf("Expected Update err %s to be of type NotFoundError", err)
 	}
 
 	// Delete non-existing game
 	err = s.Delete(g0.ID)
-	_, ok = err.(NotFoundError)
+	_, ok = err.(errors.NotFoundError)
 	if !ok {
 		t.Errorf("Expected Delete err %s to be of type NotFoundError", err)
 	}
