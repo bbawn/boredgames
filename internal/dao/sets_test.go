@@ -25,7 +25,7 @@ func daoTest(t *testing.T, s Sets) {
 	expGs := []*set.Game{}
 	gs, err := s.List()
 	if !gamesEqual(gs, expGs) {
-		t.Errorf("Expected %#v to equal %#v", gs, expGs)
+		t.Errorf("List returned %#v, expected %#v", gs, expGs)
 	}
 
 	// Insert game with players
@@ -55,7 +55,7 @@ func daoTest(t *testing.T, s Sets) {
 		t.Errorf("Unexpected err %s on Get", err)
 	}
 	if !reflect.DeepEqual(g, g0) {
-		t.Errorf("Get returned %#v, expected equal to %#v", g, g0)
+		t.Errorf("Get returned %#v, expected %#v", g, g0)
 	}
 
 	// Retrieve existing game
@@ -64,14 +64,14 @@ func daoTest(t *testing.T, s Sets) {
 		t.Errorf("Unexpected err %s on Get", err)
 	}
 	if !reflect.DeepEqual(g, g1) {
-		t.Errorf("Get returned %#v, expected equal to %#v", g, g1)
+		t.Errorf("Get returned %#v, expected %#v", g, g1)
 	}
 
 	// List all games
 	expGs = []*set.Game{g0, g1}
 	gs, err = s.List()
 	if !gamesEqual(gs, expGs) {
-		t.Errorf("Expected %#v to equal %#v", gs, expGs)
+		t.Errorf("List returned %#v, expected %#v", gs, expGs)
 	}
 
 	// Update game

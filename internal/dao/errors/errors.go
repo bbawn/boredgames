@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"net/http"
 )
 
 // NotFoundError indicates the object with the given key was not found
@@ -30,4 +31,17 @@ type InternalError struct {
 
 func (e InternalError) Error() string {
 	return fmt.Sprintf("Internal datastore error occurred: %s", e.Details)
+}
+
+func httpStatus(err error) int {
+	switch e := err.(type) {
+	case errors.NotFoundError:
+		return http.StatusNotFound
+	case errors.AlreadyExistsError:
+		return http.StatusConflict
+	case errors.InternalError:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
+	}
 }
