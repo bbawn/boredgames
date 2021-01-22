@@ -23,14 +23,15 @@ func NewSets() *Sets {
 }
 
 func (s *Sets) List() ([]*set.Game, error) {
-	var gs []*set.Game
+	// Empty slice, not nil so we can always unmarshal to json array
+	gs := []*set.Game{}
 	s.m.Lock()
 	defer s.m.Unlock()
 	for _, jGame := range s.sets {
 		var g *set.Game
 		err := json.Unmarshal(jGame, &g)
 		if err != nil {
-			return []*set.Game{}, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s", jGame)}
+			return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s", jGame)}
 		}
 		gs = append(gs, g)
 	}
