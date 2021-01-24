@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/bbawn/boredgames/internal/dao"
 	"github.com/bbawn/boredgames/internal/dao/errors"
 	"github.com/bbawn/boredgames/internal/games/set"
 	"github.com/bbawn/boredgames/internal/router"
-	"github.com/google/uuid"
 )
 
 // Sets provides the REST API for the Set board game
@@ -17,8 +18,15 @@ type Sets struct {
 	dao dao.Sets
 }
 
-func NewSets(dao dao.Sets) *Sets {
-	return &Sets{dao}
+func NewSets(dao dao.Sets, router *router.TableRouter) *Sets {
+	s := &Sets{dao}
+	router.AddRoute("GET", "/sets", http.HandlerFunc(s.List))
+	router.AddRoute("POST", "/sets", http.HandlerFunc(s.Create))
+	router.AddRoute("GET", "/sets/([^/]+)", http.HandlerFunc(s.Get))
+	router.AddRoute("DEL", "/sets/([^/]+)", http.HandlerFunc(s.Delete))
+	router.AddRoute("POST", "/sets/([^/]+)/claim", http.HandlerFunc(s.Claim))
+	router.AddRoute("POST", "/sets/([^/]+)/next", http.HandlerFunc(s.Next))
+	return s
 }
 
 func (s *Sets) List(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +44,7 @@ func (s *Sets) List(w http.ResponseWriter, r *http.Request) {
 }
 
 type createData struct {
-	usernames []string
+	Usernames []string
 }
 
 func (s *Sets) Create(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +55,7 @@ func (s *Sets) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to unmarshal create data: %s", err), http.StatusBadRequest)
 		return
 	}
-	game, err := set.NewGame(cd.usernames...)
+	game, err := set.NewGame(cd.Usernames...)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to create new game: %s", err), http.StatusBadRequest)
 		return
@@ -55,6 +63,12 @@ func (s *Sets) Create(w http.ResponseWriter, r *http.Request) {
 	err = s.dao.Insert(game)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to insert game into datastore: %s", err), errors.HttpStatus(err))
+		return
+	}
+	enc := json.NewEncoder(w)
+	err = enc.Encode(game)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode new game: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -89,7 +103,6 @@ func (s *Sets) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to delete game from datastore: %s", err), errors.HttpStatus(err))
 		return
 	}
-	// TODO: some APIs return the resource on delete - should we?
 }
 
 type claimData struct {

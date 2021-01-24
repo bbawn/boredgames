@@ -9,13 +9,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/bbawn/boredgames/internal/dao/ram"
+	"github.com/bbawn/boredgames/internal/router"
 	// "github.com/bbawn/boredgames/internal/games/set"
 )
 
 func TestSets(t *testing.T) {
 	ram := ram.NewSets()
-	s := NewSets(ram)
+	tr := new(router.TableRouter)
+	s := NewSets(ram, tr)
 	w := httptest.NewRecorder()
 
 	// List with no games
@@ -31,8 +35,8 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body %s, got %s", expBody, string(body))
 	}
 
-	// g, _ := set.NewGame()
-	d := `{ "usernames": [ "p1", "p2", "3" ] }`
+	// Create a couple of games
+	d := `{ "usernames": [ "p1", "p2", "p3" ] }`
 	r = httptest.NewRequest("POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
 	s.Create(w, r)
 	resp = w.Result()
@@ -43,25 +47,26 @@ func TestSets(t *testing.T) {
 	if string(body) != "" {
 		t.Errorf("Expected empty body, got %s", string(body))
 	}
-	/*
-		fmt.Println("d:", d)
-		fmt.Println("statusCode:", resp.StatusCode)
-		fmt.Println("resp.Header:", resp.Header.Get("Content-Type"))
-		fmt.Println("body", string(body))
 
-		// List with games
-		g, _ := set.NewGame()
-		d.Insert(g)
-		g, _ = set.NewGame("p0_g0", "p1_g1")
-		d.Insert(g)
+	// Fail to Get non-existent game
+	uuid := uuid.New()
+	r = httptest.NewRequest("GET", "http://example.com/sets/"+uuid.String(), nil)
+	s.Get(w, r)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusNotFound, resp.StatusCode)
+	}
+	if string(body) != "" {
+		t.Errorf("Expected empty body, got %s", string(body))
+	}
 
-		s.List(w, r)
-		resp = w.Result()
-		body, _ = ioutil.ReadAll(resp.Body)
-
-		fmt.Printf("d: %#v\n", d)
-		fmt.Println("statusCode:", resp.StatusCode)
-		fmt.Println("resp.Header:", resp.Header.Get("Content-Type"))
-		fmt.Println("body", string(body))
-	*/
+	// Get each game
+	// List the games
+	// Fail to Delete non-existent game
+	// Delete a game
+	// Next move in invalid state
+	// Claim a set
+	// Claim a set in invalid game state
+	// Next move
 }

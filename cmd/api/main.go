@@ -37,23 +37,16 @@ func logHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func newTableRouter() *router.TableRouter {
-	tr := new(router.TableRouter)
 	daoSets := ram.NewSets()
-	sets := services.NewSets(daoSets)
-	tr.AddRoute("GET", "/sets", logHandler(http.HandlerFunc(sets.List)))
-	tr.AddRoute("POST", "/sets", logHandler(http.HandlerFunc(sets.Create)))
-	tr.AddRoute("GET", "/sets/([^/]+)", logHandler(http.HandlerFunc(sets.Get)))
-	tr.AddRoute("DEL", "/sets/([^/]+)", logHandler(http.HandlerFunc(sets.Delete)))
-	tr.AddRoute("POST", "/sets/([^/]+)/claim", logHandler(http.HandlerFunc(sets.Claim)))
-	tr.AddRoute("POST", "/sets/([^/]+)/next", logHandler(http.HandlerFunc(sets.Next)))
-
+	tr := new(router.TableRouter)
+	services.NewSets(daoSets, tr)
 	return tr
 }
 
 func main() {
 	flag.Parse()
 	tr := newTableRouter()
-	srv := &http.Server{Addr: *addr, Handler: tr}
+	srv := &http.Server{Addr: *addr, Handler: logHandler(tr.ServeHTTP)}
 
 	log.Printf("INFO: ListenAndServe(): addr: %s", *addr)
 	if err := srv.ListenAndServe(); err != nil {
