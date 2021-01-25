@@ -18,7 +18,7 @@ type Sets struct {
 	dao dao.Sets
 }
 
-func NewSets(dao dao.Sets, router *router.TableRouter) *Sets {
+func SetsAddRoutes(dao dao.Sets, router *router.TableRouter) {
 	s := &Sets{dao}
 	router.AddRoute("GET", "/sets", http.HandlerFunc(s.List))
 	router.AddRoute("POST", "/sets", http.HandlerFunc(s.Create))
@@ -26,7 +26,6 @@ func NewSets(dao dao.Sets, router *router.TableRouter) *Sets {
 	router.AddRoute("DEL", "/sets/([^/]+)", http.HandlerFunc(s.Delete))
 	router.AddRoute("POST", "/sets/([^/]+)/claim", http.HandlerFunc(s.Claim))
 	router.AddRoute("POST", "/sets/([^/]+)/next", http.HandlerFunc(s.Next))
-	return s
 }
 
 func (s *Sets) List(w http.ResponseWriter, r *http.Request) {

@@ -55,6 +55,13 @@ type ctxKey struct{}
 
 // GetField returns the matched field at given index from the URL path
 func GetField(r *http.Request, index int) string {
-	fields := r.Context().Value(ctxKey{}).([]string)
+	k := r.Context().Value(ctxKey{})
+	if k == nil {
+		return ""
+	}
+	fields := k.([]string)
+	if len(fields) <= index {
+		return ""
+	}
 	return fields[index]
 }

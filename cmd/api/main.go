@@ -39,7 +39,7 @@ func logHandler(fn http.HandlerFunc) http.HandlerFunc {
 func newTableRouter() *router.TableRouter {
 	daoSets := ram.NewSets()
 	tr := new(router.TableRouter)
-	services.NewSets(daoSets, tr)
+	services.SetsAddRoutes(daoSets, tr)
 	return tr
 }
 

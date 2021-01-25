@@ -19,12 +19,12 @@ import (
 func TestSets(t *testing.T) {
 	ram := ram.NewSets()
 	tr := new(router.TableRouter)
-	s := NewSets(ram, tr)
-	w := httptest.NewRecorder()
+	SetsAddRoutes(ram, tr)
 
 	// List with no games
 	r := httptest.NewRequest("GET", "http://example.com/sets", nil)
-	s.List(w, r)
+	w := httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
@@ -38,7 +38,8 @@ func TestSets(t *testing.T) {
 	// Create a couple of games
 	d := `{ "usernames": [ "p1", "p2", "p3" ] }`
 	r = httptest.NewRequest("POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
-	s.Create(w, r)
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
 	resp = w.Result()
 	body, _ = ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
@@ -51,12 +52,14 @@ func TestSets(t *testing.T) {
 	// Fail to Get non-existent game
 	uuid := uuid.New()
 	r = httptest.NewRequest("GET", "http://example.com/sets/"+uuid.String(), nil)
-	s.Get(w, r)
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
 	resp = w.Result()
 	body, _ = ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusNotFound {
 		t.Errorf("Expected StatusCode %d, got %d", http.StatusNotFound, resp.StatusCode)
 	}
+	// XXX This is the error message - that what we want? I think so...
 	if string(body) != "" {
 		t.Errorf("Expected empty body, got %s", string(body))
 	}
