@@ -3,6 +3,7 @@ package ram
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -91,4 +92,14 @@ func (s *Sets) Delete(uuid uuid.UUID) error {
 	}
 	delete(s.sets, uuid)
 	return nil
+}
+
+func (s *Sets) Dump() string {
+	var b strings.Builder
+	s.m.Lock()
+	defer s.m.Unlock()
+	for uuid, game := range s.sets {
+		b.WriteString(fmt.Sprintf("uuid %s: game %s\n", uuid, game))
+	}
+	return b.String()
 }
