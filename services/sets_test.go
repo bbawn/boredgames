@@ -50,7 +50,7 @@ func TestSets(t *testing.T) {
 	dec := json.NewDecoder(resp.Body)
 	err := dec.Decode(&g1)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal game: %s", err), http.StatusInternalServerError)
+		t.Errorf("Failed to decode g1: %s", err)
 		return
 	}
 	if err := checkNewGame(g1, "p1", "p2", "p3"); err != nil {
@@ -69,7 +69,7 @@ func TestSets(t *testing.T) {
 	dec = json.NewDecoder(resp.Body)
 	err = dec.Decode(&g2)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal game: %s", err), http.StatusInternalServerError)
+		t.Errorf("Failed to decode g2: %s", err)
 		return
 	}
 	if err := checkNewGame(g2, "p2", "p0"); err != nil {
@@ -103,7 +103,7 @@ func TestSets(t *testing.T) {
 	dec = json.NewDecoder(resp.Body)
 	err = dec.Decode(&g)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal game: %s", err), http.StatusInternalServerError)
+		t.Errorf("Failed to decode g: %s", err)
 		return
 	}
 	if !reflect.DeepEqual(g, g1) {
@@ -121,7 +121,7 @@ func TestSets(t *testing.T) {
 	dec = json.NewDecoder(resp.Body)
 	err = dec.Decode(&g)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal game: %s", err), http.StatusInternalServerError)
+		t.Errorf("Failed to decode g: %s", err)
 		return
 	}
 	if !reflect.DeepEqual(g, g2) {
@@ -140,7 +140,7 @@ func TestSets(t *testing.T) {
 	var gs []*set.Game
 	err = dec.Decode(&gs)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal game: %s", err), http.StatusInternalServerError)
+		t.Errorf("failed to decode games: %s", err)
 		return
 	}
 	expGs := gameMap(g1, g2)
@@ -177,8 +177,40 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected empty body: got %s", string(body))
 	}
 
-	// Next move in invalid state
-	// Claim a set
+	t.Log("Next move in invalid state")
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusConflict {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusConflict, resp.StatusCode)
+	}
+	expBody = fmt.Sprintf("Failed to advance game to next round: Invalid method: NextRound detail: round not yet claimed\n")
+	if string(body) != expBody {
+		t.Errorf("Expected body: %s got %s", expBody, string(body))
+	}
+
+	/*
+		t.Log("Claim a set with invalid data TODO")
+		t.Log("Claim a set")
+		d = `{ "usernames: "p1", "card1": "", "card2": "": "card3": "" }`
+		r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader([]byte(d)))
+		w = httptest.NewRecorder()
+		tr.ServeHTTP(w, r)
+		resp = w.Result()
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected StatusCode %d, got %d", http.StatusOK, resp.StatusCode)
+		}
+		g = nil
+		dec = json.NewDecoder(resp.Body)
+		err = dec.Decode(&g)
+		if err != nil {
+			t.Errorf("Failed to decode g: %s", err)
+			return
+		}
+	*/
+
 	// Claim a set in invalid game state
 	// Next move
 }

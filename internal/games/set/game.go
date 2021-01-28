@@ -263,7 +263,7 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 	}
 	p, present := g.Players[username]
 	if !present {
-		return &InvalidArgError{"username", username}
+		return InvalidArgError{"username", username}
 	}
 	if !IsSet(c1, c2, c3) {
 		if len(p.Sets) > 0 {
@@ -271,13 +271,13 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 			g.Deck = append(g.Deck, penaltySet...)
 			p.Sets = p.Sets[:len(p.Sets)-1]
 		}
-		return &InvalidArgError{"set", fmt.Sprintf("%v %v %v", c1, c2, c3)}
+		return InvalidArgError{"set", fmt.Sprintf("%v %v %v", c1, c2, c3)}
 	}
 	set := []*Card{c1, c2, c3}
 	for _, c := range set {
 		i := g.Board.FindCard(c)
 		if i < 0 {
-			return &InvalidArgError{"card", fmt.Sprintf("%v", c1)}
+			return InvalidArgError{"card", fmt.Sprintf("%v", c1)}
 		}
 		g.Board[i] = nil
 	}
@@ -290,7 +290,7 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 // NextRound transitions a game in Claimed Set state to the next round
 func (g *Game) NextRound() error {
 	if len(g.ClaimedSet) != SetLen {
-		return &InvalidStateError{"NextRound", "round not yet claimed"}
+		return InvalidStateError{"NextRound", "round not yet claimed"}
 	}
 	for i, _ := range g.Board {
 		if g.Board[i] == nil {

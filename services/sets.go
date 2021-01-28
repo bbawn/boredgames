@@ -31,7 +31,7 @@ func SetsAddRoutes(dao dao.Sets, router *router.TableRouter) {
 func (s *Sets) List(w http.ResponseWriter, r *http.Request) {
 	games, err := s.dao.List()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to load games from datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to load games from datastore: %s", err), httpStatus(err))
 		return
 	}
 	enc := json.NewEncoder(w)
@@ -61,7 +61,7 @@ func (s *Sets) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	err = s.dao.Insert(game)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to insert game into datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to insert game into datastore: %s", err), httpStatus(err))
 		return
 	}
 	enc := json.NewEncoder(w)
@@ -80,7 +80,7 @@ func (s *Sets) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	game, err := s.dao.Get(uuid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), httpStatus(err))
 		return
 	}
 	enc := json.NewEncoder(w)
@@ -94,12 +94,12 @@ func (s *Sets) Get(w http.ResponseWriter, r *http.Request) {
 func (s *Sets) Delete(w http.ResponseWriter, r *http.Request) {
 	uuid, err := uuid.Parse(router.GetField(r, 0))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %s", router.GetField(r, 0), err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %s", router.GetField(r, 0), err), httpStatus(err))
 		return
 	}
 	err = s.dao.Delete(uuid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to delete game from datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to delete game from datastore: %s", err), httpStatus(err))
 		return
 	}
 }
@@ -112,25 +112,31 @@ type claimData struct {
 func (s *Sets) Claim(w http.ResponseWriter, r *http.Request) {
 	uuid, err := uuid.Parse(router.GetField(r, 0))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %s", router.GetField(r, 0), err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %s", router.GetField(r, 0), err), httpStatus(err))
 		return
 	}
 	var cd *claimData
 	dec := json.NewDecoder(r.Body)
 	dec.Decode(&cd)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal claim data: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to unmarshal claim data: %s", err), httpStatus(err))
 		return
 	}
 	game, err := s.dao.Get(uuid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), httpStatus(err))
 		return
 	}
 	game.ClaimSet(cd.username, cd.card1, cd.card2, cd.card3)
 	err = s.dao.Update(game)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to update game in datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to update game in datastore: %s", err), httpStatus(err))
+		return
+	}
+	enc := json.NewEncoder(w)
+	err = enc.Encode(game)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode game next game: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -143,13 +149,17 @@ func (s *Sets) Next(w http.ResponseWriter, r *http.Request) {
 	}
 	game, err := s.dao.Get(uuid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), httpStatus(err))
 		return
 	}
-	game.NextRound()
+	err = game.NextRound()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to advance game to next round: %s", err), httpStatus(err))
+		return
+	}
 	err = s.dao.Update(game)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to update game in datastore: %s", err), errors.HttpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to update game in datastore: %s", err), httpStatus(err))
 		return
 	}
 	enc := json.NewEncoder(w)
@@ -157,5 +167,20 @@ func (s *Sets) Next(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to encode game next game: %s", err), http.StatusInternalServerError)
 		return
+	}
+}
+
+func httpStatus(err error) int {
+	switch err.(type) {
+	case errors.AlreadyExistsError:
+		return http.StatusConflict
+	case errors.InternalError:
+		return http.StatusInternalServerError
+	case errors.NotFoundError:
+		return http.StatusNotFound
+	case set.InvalidStateError:
+		return http.StatusConflict
+	default:
+		return http.StatusInternalServerError
 	}
 }

@@ -159,14 +159,14 @@ func TestInvalidGames(t *testing.T) {
 	}
 
 	var (
-		invStateErr *InvalidStateError
-		invArgErr   *InvalidArgError
+		invStateErr InvalidStateError
+		invArgErr   InvalidArgError
 		s           []*Card
 		ok          bool
 	)
 	// Can only go to next round if there is a claimed set
 	err = g.NextRound()
-	if invStateErr, ok = err.(*InvalidStateError); !ok {
+	if invStateErr, ok = err.(InvalidStateError); !ok {
 		t.Errorf("expected InvalidStateError, got: %v", err)
 	}
 	if invStateErr.Method != "NextRound" {
@@ -180,7 +180,7 @@ func TestInvalidGames(t *testing.T) {
 	// Claim with invalid username
 	s = g.FindExpandSet()
 	err = g.ClaimSet("Jane", s[0], s[1], s[2])
-	if invArgErr, ok = err.(*InvalidArgError); !ok {
+	if invArgErr, ok = err.(InvalidArgError); !ok {
 		t.Errorf("expected InvalidArgError, got: %v", err)
 	}
 	if invArgErr.Arg != "username" {
@@ -193,7 +193,7 @@ func TestInvalidGames(t *testing.T) {
 	// Claim with non-set
 	s = g.Board.FindSet(false)
 	err = g.ClaimSet("Joe", s[0], s[1], s[2])
-	if invArgErr, ok = err.(*InvalidArgError); !ok {
+	if invArgErr, ok = err.(InvalidArgError); !ok {
 		t.Errorf("expected InvalidArgError, got: %v", err)
 	}
 	if invArgErr.Arg != "set" {
