@@ -8,14 +8,14 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Oval-0]
-	_ = x[Triangle-1]
+	_ = x[Diamond-0]
+	_ = x[Oval-1]
 	_ = x[Squiggle-2]
 }
 
-const _Shape_name = "OvalTriangleSquiggle"
+const _Shape_name = "DiamondOvalSquiggle"
 
-var _Shape_index = [...]uint8{0, 4, 12, 20}
+var _Shape_index = [...]uint8{0, 7, 11, 19}
 
 func (i Shape) String() string {
 	if i >= Shape(len(_Shape_index)-1) {

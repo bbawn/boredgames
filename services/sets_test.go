@@ -191,27 +191,25 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
 
-	/*
-		t.Log("Claim a set with invalid data TODO")
-		t.Log("Claim a set")
-		d = `{ "usernames: "p1", "card1": "", "card2": "": "card3": "" }`
-		r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader([]byte(d)))
-		w = httptest.NewRecorder()
-		tr.ServeHTTP(w, r)
-		resp = w.Result()
-		if resp.StatusCode != http.StatusOK {
-			t.Errorf("Expected StatusCode %d, got %d", http.StatusOK, resp.StatusCode)
-		}
-		g = nil
-		dec = json.NewDecoder(resp.Body)
-		err = dec.Decode(&g)
-		if err != nil {
-			t.Errorf("Failed to decode g: %s", err)
-			return
-		}
-	*/
+	t.Log("Claim a set")
+	d = `{ "usernames: "p1", "card1": "", "card2": "": "card3": "" }`
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader([]byte(d)))
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	g = nil
+	dec = json.NewDecoder(resp.Body)
+	err = dec.Decode(&g)
+	if err != nil {
+		t.Errorf("Failed to decode g: %s", err)
+		return
+	}
 
 	// Claim a set in invalid game state
+	t.Log("Claim a set with invalid data TODO")
 	// Next move
 }
 

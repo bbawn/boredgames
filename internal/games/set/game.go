@@ -1,9 +1,12 @@
 package set
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -19,45 +22,120 @@ type Shading byte
 
 const (
 	Filled Shading = iota
-	Stripe
 	Outline
+	Stripe
 )
+
+// abbrToShading returns the Shading, given the abbreviation
+func abbrToShading(a string) Shading {
+	switch strings.ToLower(a) {
+	case "f":
+		return Filled
+	case "o":
+		return Outline
+	case "s":
+		return Stripe
+	default:
+		return math.MaxUint8
+	}
+}
 
 //go:generate stringer -type=Shading
 
 type Shape byte
 
 const (
-	Oval Shape = iota
-	Triangle
+	Diamond Shape = iota
+	Oval
 	Squiggle
 )
+
+// abbrToShape returns the Shape, given the abbreviation
+func abbrToShape(a string) Shape {
+	switch strings.ToLower(a) {
+	case "d":
+		return Diamond
+	case "o":
+		return Oval
+	case "s":
+		return Squiggle
+	default:
+		return math.MaxUint8
+	}
+}
 
 //go:generate stringer -type=Shape
 
 type Color byte
 
 const (
-	Red Color = iota
+	Green Color = iota
 	Purple
-	Green
+	Red
 )
+
+// abbrToColor returns the Color, given the abbreviation
+func abbrToColor(a string) Color {
+	switch strings.ToLower(a) {
+	case "g":
+		return Green
+	case "p":
+		return Purple
+	case "r":
+		return Red
+	default:
+		return math.MaxUint8
+	}
+}
 
 //go:generate stringer -type=Color
 
 // Card is a set game card
 type Card struct {
-	Shading Shading
-	Shape   Shape
 	Color   Color
 	Count   byte
+	Shading Shading
+	Shape   Shape
+}
+
+func (c *Card) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	if len(s) != 4 {
+		return fmt.Errorf("Card string must have len 4: %s", s)
+	}
+	color := abbrToColor(s[0:1])
+	if color < 0 {
+		return fmt.Errorf("Invalid color abbreviation: %c", s[0])
+	}
+	count, err := strconv.Atoi(s[1:2])
+	if err != nil {
+		return fmt.Errorf("Invalid count: %c", s[1])
+	}
+	shading := abbrToShading(s[2:3])
+	if shading < 0 {
+		return fmt.Errorf("Invalid shading abbreviation: %c", s[2])
+	}
+	shape := abbrToShape(s[3:])
+	if color < 0 {
+		return fmt.Errorf("Invalid color abbreviation: %c", s[3])
+	}
+	*c = Card{color, byte(count), shading, shape}
+	return nil
+}
+
+func (c Card) MarshalJSON() ([]byte, error) {
+	s := c.Color.String()[0:1] + strconv.Itoa(int(c.Count)) + c.Shading.String()[0:1] + c.Shape.String()[0:1]
+	return json.Marshal(s)
 }
 
 func (c *Card) String() string {
 	if c == nil {
 		return "----"
 	}
-	return c.Shading.String()[0:1] + c.Shape.String()[0:1] + c.Color.String()[0:1] + strconv.Itoa(int(c.Count))
+	return c.Color.String()[0:1] + strconv.Itoa(int(c.Count)) + c.Shading.String()[0:1] + c.Shape.String()[0:1]
 }
 
 // CardBase3 is representation of a card as a 4-digit, base-3 integer

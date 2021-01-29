@@ -15,10 +15,10 @@ func getUsernames() []string {
 }
 
 func TestCardString(t *testing.T) {
-	c1 := &Card{Filled, Triangle, Red, 1}
+	c1 := &Card{Red, 1, Filled, Diamond}
 	s := c1.String()
-	if s != "FTR1" {
-		t.Errorf("expected: c1.String() to be %s, got %s", "FTR1", s)
+	if s != "R1FD" {
+		t.Errorf("expected: c1.String() to be %s, got %s", "R1FD", s)
 	}
 }
 
@@ -28,100 +28,100 @@ func TestIsSet(t *testing.T) {
 	)
 
 	// duplicate card, not even a non-set
-	c1 = &Card{Filled, Triangle, Red, 1}
-	c2 = &Card{Filled, Triangle, Red, 1}
-	c3 = &Card{Filled, Triangle, Purple, 1}
+	c1 = &Card{Red, 1, Filled, Diamond}
+	c2 = &Card{Red, 1, Filled, Diamond}
+	c3 = &Card{Purple, 1, Filled, Diamond}
 	if IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
 	}
 
 	// not a set
-	c1 = &Card{Filled, Triangle, Red, 1}
-	c2 = &Card{Filled, Squiggle, Red, 1}
-	c3 = &Card{Stripe, Squiggle, Purple, 1}
+	c1 = &Card{Red, 1, Filled, Diamond}
+	c2 = &Card{Red, 1, Filled, Squiggle}
+	c3 = &Card{Purple, 1, Stripe, Squiggle}
 	if IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v not to be a set", c1, c2, c3)
 	}
 
 	// Shading same, shape different, color different, count different
-	c1 = &Card{Filled, Triangle, Purple, 1}
-	c2 = &Card{Filled, Squiggle, Red, 2}
-	c3 = &Card{Filled, Oval, Green, 3}
+	c1 = &Card{Purple, 1, Filled, Diamond}
+	c2 = &Card{Red, 2, Filled, Squiggle}
+	c3 = &Card{Green, 3, Filled, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 	// Shading different, shape same, color different, count different
-	c1 = &Card{Filled, Squiggle, Purple, 1}
-	c2 = &Card{Stripe, Squiggle, Red, 2}
-	c3 = &Card{Outline, Squiggle, Green, 3}
+	c1 = &Card{Purple, 1, Filled, Squiggle}
+	c2 = &Card{Red, 2, Stripe, Squiggle}
+	c3 = &Card{Green, 3, Outline, Squiggle}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 	// Shading different, shape different, color same, count different
-	c1 = &Card{Filled, Triangle, Green, 1}
-	c2 = &Card{Stripe, Squiggle, Green, 2}
-	c3 = &Card{Outline, Oval, Green, 3}
+	c1 = &Card{Green, 1, Filled, Diamond}
+	c2 = &Card{Green, 2, Stripe, Squiggle}
+	c3 = &Card{Green, 3, Outline, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 	// Shading different, shape different, color different, count same
-	c1 = &Card{Filled, Triangle, Purple, 1}
-	c2 = &Card{Stripe, Squiggle, Red, 1}
-	c3 = &Card{Outline, Oval, Green, 1}
+	c1 = &Card{Purple, 1, Filled, Diamond}
+	c2 = &Card{Red, 1, Stripe, Squiggle}
+	c3 = &Card{Green, 1, Outline, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 
 	// Shading same, shape same, color different, count different
-	c1 = &Card{Filled, Oval, Purple, 1}
-	c2 = &Card{Filled, Oval, Red, 2}
-	c3 = &Card{Filled, Oval, Green, 3}
+	c1 = &Card{Purple, 1, Filled, Oval}
+	c2 = &Card{Red, 2, Filled, Oval}
+	c3 = &Card{Green, 3, Filled, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 	// Shading different, shape same, color same, count different
-	c1 = &Card{Filled, Oval, Red, 1}
-	c2 = &Card{Stripe, Oval, Red, 2}
-	c3 = &Card{Outline, Oval, Red, 3}
+	c1 = &Card{Red, 1, Filled, Oval}
+	c2 = &Card{Red, 2, Stripe, Oval}
+	c3 = &Card{Red, 3, Outline, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 	// Shading different, shape different, color same, count same
-	c1 = &Card{Filled, Triangle, Purple, 2}
-	c2 = &Card{Stripe, Squiggle, Purple, 2}
-	c3 = &Card{Outline, Oval, Purple, 2}
+	c1 = &Card{Red, 2, Filled, Diamond}
+	c2 = &Card{Red, 2, Stripe, Squiggle}
+	c3 = &Card{Red, 2, Outline, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 
 	// Shading different, shape same, color same, count same
-	c1 = &Card{Filled, Oval, Red, 3}
-	c2 = &Card{Stripe, Oval, Red, 3}
-	c3 = &Card{Outline, Oval, Red, 3}
+	c1 = &Card{Red, 2, Filled, Oval}
+	c2 = &Card{Red, 2, Stripe, Oval}
+	c3 = &Card{Red, 2, Outline, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 
 	// Shading same, shape different, color same, count same
-	c1 = &Card{Stripe, Oval, Red, 3}
-	c2 = &Card{Stripe, Triangle, Red, 3}
-	c3 = &Card{Stripe, Squiggle, Red, 3}
+	c1 = &Card{Red, 2, Stripe, Diamond}
+	c2 = &Card{Red, 2, Stripe, Oval}
+	c3 = &Card{Red, 2, Stripe, Squiggle}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 
 	// Shading same, shape same, color different, count same
-	c1 = &Card{Filled, Oval, Red, 3}
-	c2 = &Card{Filled, Oval, Green, 3}
-	c3 = &Card{Filled, Oval, Purple, 3}
+	c1 = &Card{Red, 2, Stripe, Oval}
+	c2 = &Card{Green, 2, Stripe, Oval}
+	c3 = &Card{Purple, 2, Stripe, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}
 
 	// Shading same, shape same, color same, count different
-	c1 = &Card{Filled, Oval, Red, 1}
-	c2 = &Card{Filled, Oval, Red, 2}
-	c3 = &Card{Filled, Oval, Red, 3}
+	c1 = &Card{Red, 1, Stripe, Oval}
+	c2 = &Card{Red, 2, Stripe, Oval}
+	c3 = &Card{Red, 3, Stripe, Oval}
 	if !IsSet(c1, c2, c3) {
 		t.Errorf("expected: %v, %v, %v to be a set", c1, c2, c3)
 	}

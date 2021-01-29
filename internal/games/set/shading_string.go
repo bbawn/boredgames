@@ -9,13 +9,13 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[Filled-0]
-	_ = x[Stripe-1]
-	_ = x[Outline-2]
+	_ = x[Outline-1]
+	_ = x[Stripe-2]
 }
 
-const _Shading_name = "FilledStripeOutline"
+const _Shading_name = "FilledOutlineStripe"
 
-var _Shading_index = [...]uint8{0, 6, 12, 19}
+var _Shading_index = [...]uint8{0, 6, 13, 19}
 
 func (i Shading) String() string {
 	if i >= Shading(len(_Shading_index)-1) {
