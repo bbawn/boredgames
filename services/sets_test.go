@@ -37,6 +37,7 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body %s, got %s", expBody, string(body))
 	}
 
+	t.Log("Create a game with invalid payload - TODO")
 	t.Log("Create a couple of games")
 	d := `{ "usernames": [ "p1", "p2", "p3" ] }`
 	r = httptest.NewRequest("POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
@@ -191,9 +192,41 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
 
+	t.Log("Claim a set with invalid json TODO")
+	t.Log("Claim a set with invalid data")
+	cd := claimData{}
+	payload, err := json.Marshal(&cd)
+	if err != nil {
+		t.Errorf("Unexpected Marshal err: %s", err)
+		return
+	}
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusConflict {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusConflict, resp.StatusCode)
+	}
+	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value: for arg: username\n")
+	if string(body) != expBody {
+		t.Errorf("Expected body: %s got %s", expBody, string(body))
+	}
+
 	t.Log("Claim a set")
-	d = `{ "usernames: "p1", "card1": "", "card2": "": "card3": "" }`
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader([]byte(d)))
+	set := g1.FindExpandSet()
+	cd = claimData{
+		Username: "p1",
+		Card1:    set[0],
+		Card2:    set[1],
+		Card3:    set[2],
+	}
+	payload, err = json.Marshal(&cd)
+	if err != nil {
+		t.Errorf("Unexpected Marshal err: %s", err)
+		return
+	}
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	w = httptest.NewRecorder()
 	tr.ServeHTTP(w, r)
 	resp = w.Result()
@@ -207,12 +240,29 @@ func TestSets(t *testing.T) {
 		t.Errorf("Failed to decode g: %s", err)
 		return
 	}
+	err = checkNextGame(g1, g)
+	if err != nil {
+		t.Errorf("Invalid games after Claim:  %#v, %#v: err %s", g1, g, err)
+	}
 
-	// Claim a set in invalid game state
-	t.Log("Claim a set with invalid data TODO")
+	t.Log("Claim a set in invalid game state")
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusConflict {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusConflict, resp.StatusCode)
+	}
+	expBody = fmt.Sprintf("Failed to advance game to next round: Invalid method: NextRound detail: round not yet claimed\n")
+	if string(body) != expBody {
+		t.Errorf("Expected body: %s got %s", expBody, string(body))
+	}
+
 	// Next move
 }
 
+// checkNewGame validates that the given game is in a valid initial state
 func checkNewGame(g *set.Game, usernames ...string) error {
 	if g.ID.URN() == "" {
 		return fmt.Errorf("Invalid ID: %s", g.ID)
@@ -235,6 +285,24 @@ func checkNewGame(g *set.Game, usernames ...string) error {
 			return fmt.Errorf("Expected empty Sets for player %s", u)
 		}
 	}
+	return nil
+}
+
+// checkNextGame validates that g1 is a valid next state of g0
+func checkNextGame(g0, g1 *set.Game) error {
+	if g0.ID != g1.ID {
+		return fmt.Errorf("Expected g0 ID %s to equal g1 ID %s", g0.ID, g1.ID)
+	}
+	if g0.GetState() == set.Playing {
+		if g1.GetState() != set.SetClaimed {
+			return fmt.Errorf("Expected g1 State to be SetClaimed")
+		}
+	} else {
+		if g1.GetState() != set.Playing {
+			return fmt.Errorf("Expected g1 State to be Playing")
+		}
+	}
+	// TODO? we could check invariants on players, scores, deck size, etc...
 	return nil
 }
 

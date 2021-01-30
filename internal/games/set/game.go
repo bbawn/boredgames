@@ -90,6 +90,15 @@ func abbrToColor(a string) Color {
 
 //go:generate stringer -type=Color
 
+type State byte
+
+const (
+	Playing State = iota
+	SetClaimed
+)
+
+//go:generate stringer -type=State
+
 // Card is a set game card
 type Card struct {
 	Color   Color
@@ -389,6 +398,14 @@ func (g *Game) NextRound() error {
 		g.Board = newBoard
 	}
 	g.ClaimedUsername = ""
-	g.ClaimedSet = []*Card{}
+	g.ClaimedSet = nil
 	return nil
+}
+
+func (g *Game) GetState() State {
+	if g.ClaimedSet == nil {
+		return Playing
+	} else {
+		return SetClaimed
+	}
 }
