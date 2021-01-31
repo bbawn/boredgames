@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/go-delve/delve v1.5.1 // indirect
 	github.com/google/uuid v1.1.3
+	github.com/onsi/gomega v1.10.4
 	github.com/yuin/goldmark v1.3.1 // indirect
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
