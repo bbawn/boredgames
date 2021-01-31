@@ -37,7 +37,9 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body %s, got %s", expBody, string(body))
 	}
 
-	t.Log("Create a game with invalid payload - TODO")
+	t.Log("Create a game with no payload")
+	t.Log("Create a game with invalid json payload")
+	t.Log("Create a game with empty username")
 	t.Log("Create a couple of games")
 	d := `{ "usernames": [ "p1", "p2", "p3" ] }`
 	r = httptest.NewRequest("POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
@@ -192,39 +194,76 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
 
-	t.Log("Claim a set with invalid data")
-	cd := claimData{}
-	payload, err := json.Marshal(&cd)
-	if err != nil {
-		t.Errorf("Unexpected Marshal err: %s", err)
-		return
-	}
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	t.Log("Claim a set with no payload")
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", nil)
 	w = httptest.NewRecorder()
 	tr.ServeHTTP(w, r)
 	resp = w.Result()
 	body, _ = ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("Expected StatusCode %d, got %d", http.StatusConflict, resp.StatusCode)
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusBadRequest, resp.StatusCode)
 	}
 	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
 	if string(body) != expBody {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
 
-	t.Log("Claim a set")
-	s1 := g1.FindExpandSet()
-	cd = claimData{
-		Username: "p1",
-		Card1:    s1[0],
-		Card2:    s1[1],
-		Card3:    s1[2],
+	t.Log("Claim a set with invalid json payload")
+	payload := []byte(`{ foo`)
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusBadRequest, resp.StatusCode)
 	}
-	payload, err = json.Marshal(&cd)
+	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
+	if string(body) != expBody {
+		t.Errorf("Expected body: %s got %s", expBody, string(body))
+	}
+
+	s1 := g1.FindExpandSet()
+	t.Log("Claim a set with invalid username in payload")
+	payload = claimPayload("nonplayer", s1[0], s1[1], s1[2])
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusBadRequest, resp.StatusCode)
+	}
+	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value: nonplayer for arg: username\n")
+	if string(body) != expBody {
+		t.Errorf("Expected body: %s got %s", expBody, string(body))
+	}
+
+	t.Log("Claim a set with non-set in payload (penalty)")
+	payload = claimPayload("p1", s1[1], s1[1], s1[2])
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	var g1ClaimFail *set.Game
+	dec = json.NewDecoder(resp.Body)
+	err = dec.Decode(&g1ClaimFail)
 	if err != nil {
-		t.Errorf("Unexpected Marshal err: %s", err)
+		t.Errorf("Failed to decode g1Claimed: %s", err)
 		return
 	}
+	if g1.ID != g1ClaimFail.ID {
+		t.Errorf("Expected failed claim game ID %s to equal %s", g1ClaimFail.ID, g1.ID)
+	}
+	if g1ClaimFail.GetState() != set.Playing {
+		t.Errorf("Expected failed claim game State to be Playing")
+	}
+
+	t.Log("Claim a set")
+	payload = claimPayload("p1", s1[0], s1[1], s1[2])
 	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	w = httptest.NewRecorder()
 	tr.ServeHTTP(w, r)
@@ -243,6 +282,10 @@ func TestSets(t *testing.T) {
 	if err != nil {
 		t.Errorf("Invalid games after Claim:  %#v, %#v: err %s", g1, g1Claimed, err)
 	}
+	if len(g1Claimed.Players["p1"].Sets) != 1 {
+		t.Errorf("Expected p1 to have 1 set: got %d", len(g1Claimed.Players["p1"].Sets))
+	}
+	// TODO: DeepEqual sets
 
 	t.Log("Claim a set in invalid game state")
 	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
@@ -329,4 +372,17 @@ func gameMap(gs ...*set.Game) map[uuid.UUID]*set.Game {
 		m[g.ID] = g
 	}
 	return m
+}
+func claimPayload(username string, c1, c2, c3 *set.Card) []byte {
+	cd := claimData{
+		Username: username,
+		Card1:    c1,
+		Card2:    c2,
+		Card3:    c3,
+	}
+	payload, err := json.Marshal(&cd)
+	if err != nil {
+		panic(fmt.Sprintf("Unexpected Marshal err: %s", err))
+	}
+	return payload
 }

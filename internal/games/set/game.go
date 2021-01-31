@@ -331,14 +331,11 @@ func (g *Game) ExpandBoard() bool {
 // If the given username is not a player in the Game, an
 // InvalidArgError(Arg="username") is returned.
 //
-// If the given cards are not a set, an InvaidArgError(Arg="set") is returned
-// and (per game rules) the most recent set in the player's collection is
-// returned to the Deck.
-//
-// If the given set is valid and any of the cards are no longer present on the
-// board, an InvaidArgError(Arg="card") is returned (this can happen if another
-// player has claimed the set or another set containing any of the claimed set's
-// cards).
+// If the given cards are not a set or not present in the deck, nil is
+// returned and (per game rules) the most recent set in the player's collection
+// is returned to the Deck.
+// NOTE: we need to add Game.logicalTime to avoid race where set was valid for
+// an earlier logicalTime (should fail but not penalize)
 //
 // If the given set is valid and the cards are all still present on the board,
 // the given set is copied to the Game's ClaimedSet (so that it can be displayed
@@ -353,18 +350,17 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 		return InvalidArgError{"username", username}
 	}
 	if !IsSet(c1, c2, c3) {
-		if len(p.Sets) > 0 {
-			penaltySet := p.Sets[len(p.Sets)-1]
-			g.Deck = append(g.Deck, penaltySet...)
-			p.Sets = p.Sets[:len(p.Sets)-1]
-		}
-		return InvalidArgError{"set", fmt.Sprintf("%v %v %v", c1, c2, c3)}
+		g.penalty(p)
+		// Illegal move, but not an error (we must update datastore)
+		return nil
 	}
 	set := []*Card{c1, c2, c3}
 	for _, c := range set {
 		i := g.Board.FindCard(c)
 		if i < 0 {
-			return InvalidArgError{"card", fmt.Sprintf("%v", c1)}
+			g.penalty(p)
+			// Illegal move, but not an error (we must update datastore)
+			return nil
 		}
 		g.Board[i] = nil
 	}
@@ -407,5 +403,13 @@ func (g *Game) GetState() State {
 		return Playing
 	} else {
 		return SetClaimed
+	}
+}
+
+func (g *Game) penalty(p *Player) {
+	if len(p.Sets) > 0 {
+		penaltySet := p.Sets[len(p.Sets)-1]
+		g.Deck = append(g.Deck, penaltySet...)
+		p.Sets = p.Sets[:len(p.Sets)-1]
 	}
 }

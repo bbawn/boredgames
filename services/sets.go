@@ -47,7 +47,7 @@ type createData struct {
 }
 
 func (s *Sets) Create(w http.ResponseWriter, r *http.Request) {
-	var cd *createData
+	var cd createData
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&cd)
 	if err != nil {
@@ -115,7 +115,7 @@ func (s *Sets) Claim(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %s", router.GetField(r, 0), err), httpStatus(err))
 		return
 	}
-	var cd *claimData
+	var cd claimData
 	dec := json.NewDecoder(r.Body)
 	dec.Decode(&cd)
 	if err != nil {

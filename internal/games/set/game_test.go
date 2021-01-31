@@ -1,7 +1,6 @@
 package set
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 )
@@ -193,14 +192,8 @@ func TestInvalidGames(t *testing.T) {
 	// Claim with non-set
 	s = g.Board.FindSet(false)
 	err = g.ClaimSet("Joe", s[0], s[1], s[2])
-	if invArgErr, ok = err.(InvalidArgError); !ok {
-		t.Errorf("expected InvalidArgError, got: %v", err)
-	}
-	if invArgErr.Arg != "set" {
-		t.Errorf("expected Arg: set, got: %v", invArgErr.Arg)
-	}
-	if invArgErr.Value != fmt.Sprintf("%v %v %v", s[0], s[1], s[2]) {
-		t.Errorf("expected Value: Jane, got: %v", invArgErr.Value)
+	if err != nil {
+		t.Errorf("expected nil err, got: %v", err)
 	}
 }
 
