@@ -271,7 +271,7 @@ type InvalidArgError struct {
 }
 
 func (e InvalidArgError) Error() string {
-	return fmt.Sprintf("Invalid value: %s for arg: %s", e.Arg, e.Value)
+	return fmt.Sprintf("Invalid value: %s for arg: %s", e.Value, e.Arg)
 }
 
 // InvalidStateError indicates the Method was called for an object that is not in
@@ -291,7 +291,7 @@ func NewGame(usernames ...string) (*Game, error) {
 	g.Players = make(map[string]*Player)
 	for _, u := range usernames {
 		if _, present := g.Players[u]; present {
-			return nil, &InvalidArgError{"username", u}
+			return nil, InvalidArgError{"username", u}
 		}
 		g.Players[u] = &Player{Username: u}
 	}
@@ -346,7 +346,7 @@ func (g *Game) ExpandBoard() bool {
 // nil is returned.
 func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 	if g.ClaimedUsername != "" {
-		return &InvalidStateError{"ClaimSet", "round already claimed by " + username}
+		return InvalidStateError{"ClaimSet", "round already claimed by " + username}
 	}
 	p, present := g.Players[username]
 	if !present {

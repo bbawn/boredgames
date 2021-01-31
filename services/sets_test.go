@@ -192,7 +192,6 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
 
-	t.Log("Claim a set with invalid json TODO")
 	t.Log("Claim a set with invalid data")
 	cd := claimData{}
 	payload, err := json.Marshal(&cd)
@@ -205,10 +204,10 @@ func TestSets(t *testing.T) {
 	tr.ServeHTTP(w, r)
 	resp = w.Result()
 	body, _ = ioutil.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusConflict {
+	if resp.StatusCode != http.StatusBadRequest {
 		t.Errorf("Expected StatusCode %d, got %d", http.StatusConflict, resp.StatusCode)
 	}
-	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value: for arg: username\n")
+	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
 	if string(body) != expBody {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
@@ -254,7 +253,7 @@ func TestSets(t *testing.T) {
 	if resp.StatusCode != http.StatusConflict {
 		t.Errorf("Expected StatusCode %d, got %d", http.StatusConflict, resp.StatusCode)
 	}
-	expBody = fmt.Sprintf("Failed to advance game to next round: Invalid method: NextRound detail: round not yet claimed\n")
+	expBody = fmt.Sprintf("Failed to claim set in game: Invalid method: ClaimSet detail: round already claimed by p1\n")
 	if string(body) != expBody {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}

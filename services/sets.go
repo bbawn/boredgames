@@ -182,6 +182,8 @@ func httpStatus(err error) int {
 		return http.StatusInternalServerError
 	case errors.NotFoundError:
 		return http.StatusNotFound
+	case set.InvalidArgError:
+		return http.StatusBadRequest
 	case set.InvalidStateError:
 		return http.StatusConflict
 	default:
