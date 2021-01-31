@@ -213,12 +213,12 @@ func TestSets(t *testing.T) {
 	}
 
 	t.Log("Claim a set")
-	set := g1.FindExpandSet()
+	s1 := g1.FindExpandSet()
 	cd = claimData{
 		Username: "p1",
-		Card1:    set[0],
-		Card2:    set[1],
-		Card3:    set[2],
+		Card1:    s1[0],
+		Card2:    s1[1],
+		Card3:    s1[2],
 	}
 	payload, err = json.Marshal(&cd)
 	if err != nil {
@@ -232,16 +232,16 @@ func TestSets(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected StatusCode %d, got %d", http.StatusOK, resp.StatusCode)
 	}
-	g = nil
+	var g1Claimed *set.Game
 	dec = json.NewDecoder(resp.Body)
-	err = dec.Decode(&g)
+	err = dec.Decode(&g1Claimed)
 	if err != nil {
-		t.Errorf("Failed to decode g: %s", err)
+		t.Errorf("Failed to decode g1Claimed: %s", err)
 		return
 	}
-	err = checkNextGame(g1, g)
+	err = checkNextGame(g1, g1Claimed)
 	if err != nil {
-		t.Errorf("Invalid games after Claim:  %#v, %#v: err %s", g1, g, err)
+		t.Errorf("Invalid games after Claim:  %#v, %#v: err %s", g1, g1Claimed, err)
 	}
 
 	t.Log("Claim a set in invalid game state")
@@ -258,7 +258,25 @@ func TestSets(t *testing.T) {
 		t.Errorf("Expected body: %s got %s", expBody, string(body))
 	}
 
-	// Next move
+	t.Log("Valid Next round request")
+	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
+	w = httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	resp = w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected StatusCode %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	var g1Next *set.Game
+	dec = json.NewDecoder(resp.Body)
+	err = dec.Decode(&g1Next)
+	if err != nil {
+		t.Errorf("Failed to decode g1Next: %s", err)
+		return
+	}
+	err = checkNextGame(g1Claimed, g1Next)
+	if err != nil {
+		t.Errorf("Invalid games after Next:  %#v, %#v: err %s", g1Claimed, g1Next, err)
+	}
 }
 
 // checkNewGame validates that the given game is in a valid initial state
