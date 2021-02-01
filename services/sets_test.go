@@ -33,10 +33,30 @@ func TestSets(t *testing.T) {
 	g.Expect(strings.TrimSpace(string(body))).To(Equal(expBody))
 
 	t.Log("Create a game with no payload")
+	resp = doRequest(tr, "POST", "http://example.com/sets", nil)
+	body, _ = ioutil.ReadAll(resp.Body)
+	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+	expBody = fmt.Sprintf("Failed to unmarshal create data:")
+	g.Expect(string(body)).To(HavePrefix(expBody))
+
 	t.Log("Create a game with invalid json payload")
+	d := `foo`
+	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
+	body, _ = ioutil.ReadAll(resp.Body)
+	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+	expBody = fmt.Sprintf("Failed to unmarshal create data:")
+	g.Expect(string(body)).To(HavePrefix(expBody))
+
 	t.Log("Create a game with empty username")
+	d = `{ "usernames": [ "p1", "", "p3" ] }`
+	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
+	body, _ = ioutil.ReadAll(resp.Body)
+	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+	expBody = fmt.Sprintf("Failed to create new game: Invalid value: empty for arg: username\n")
+	g.Expect(string(body)).To(Equal(expBody))
+
 	t.Log("Create a couple of games")
-	d := `{ "usernames": [ "p1", "p2", "p3" ] }`
+	d = `{ "usernames": [ "p1", "p2", "p3" ] }`
 	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1 *set.Game

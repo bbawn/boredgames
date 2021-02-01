@@ -290,8 +290,11 @@ func NewGame(usernames ...string) (*Game, error) {
 	g.ID = uuid.New()
 	g.Players = make(map[string]*Player)
 	for _, u := range usernames {
+		if u == "" {
+			return nil, InvalidArgError{"username", "empty"}
+		}
 		if _, present := g.Players[u]; present {
-			return nil, InvalidArgError{"username", u}
+			return nil, InvalidArgError{"username", u + " already present"}
 		}
 		g.Players[u] = &Player{Username: u}
 	}
