@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -25,10 +26,7 @@ func TestSets(t *testing.T) {
 	SetsAddRoutes(ram, tr)
 
 	t.Log("List with no games")
-	r := httptest.NewRequest("GET", "http://example.com/sets", nil)
-	w := httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp := w.Result()
+	resp := doRequest(tr, "GET", "http://example.com/sets", nil)
 	body, _ := ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	expBody := "[]"
@@ -39,10 +37,7 @@ func TestSets(t *testing.T) {
 	t.Log("Create a game with empty username")
 	t.Log("Create a couple of games")
 	d := `{ "usernames": [ "p1", "p2", "p3" ] }`
-	r = httptest.NewRequest("POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1 *set.Game
 	dec := json.NewDecoder(resp.Body)
@@ -52,10 +47,7 @@ func TestSets(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	d = `{ "usernames": [ "p2", "p0" ] }`
-	r = httptest.NewRequest("POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g2 *set.Game
 	dec = json.NewDecoder(resp.Body)
@@ -66,20 +58,14 @@ func TestSets(t *testing.T) {
 
 	t.Log("Fail to Get non-existent game")
 	uid := uuid.New()
-	r = httptest.NewRequest("GET", "http://example.com/sets/"+uid.String(), nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "GET", "http://example.com/sets/"+uid.String(), nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 	expBody = fmt.Sprintf("Failed to get game from datastore: Key %s not found in datastore\n", uid.String())
 	g.Expect(string(body)).To(Equal(expBody))
 
 	t.Log("Get each game")
-	r = httptest.NewRequest("GET", "http://example.com/sets/"+g1.ID.String(), nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "GET", "http://example.com/sets/"+g1.ID.String(), nil)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g0 *set.Game
 	dec = json.NewDecoder(resp.Body)
@@ -87,10 +73,7 @@ func TestSets(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(g0).To(Equal(g1))
 
-	r = httptest.NewRequest("GET", "http://example.com/sets/"+g2.ID.String(), nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "GET", "http://example.com/sets/"+g2.ID.String(), nil)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	g0 = nil
 	dec = json.NewDecoder(resp.Body)
@@ -99,10 +82,7 @@ func TestSets(t *testing.T) {
 	g.Expect(g0).To(Equal(g2))
 
 	t.Log("List the games")
-	r = httptest.NewRequest("GET", "http://example.com/sets", nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "GET", "http://example.com/sets", nil)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	dec = json.NewDecoder(resp.Body)
 	var gs []*set.Game
@@ -114,39 +94,27 @@ func TestSets(t *testing.T) {
 
 	t.Log("Fail to Delete non-existent game")
 	uid = uuid.New()
-	r = httptest.NewRequest("DEL", "http://example.com/sets/"+uid.String(), nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "DEL", "http://example.com/sets/"+uid.String(), nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 	expBody = fmt.Sprintf("Failed to delete game from datastore: Key %s not found in datastore\n", uid.String())
 	g.Expect(string(body)).To(Equal(expBody))
 
 	t.Log("Delete a game")
-	r = httptest.NewRequest("DEL", "http://example.com/sets/"+g2.ID.String(), nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "DEL", "http://example.com/sets/"+g2.ID.String(), nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	g.Expect(string(body)).To(BeEmpty())
 
 	t.Log("Next move in invalid state")
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusConflict))
 	expBody = fmt.Sprintf("Failed to advance game to next round: Invalid method: NextRound detail: round not yet claimed\n")
 	g.Expect(string(body)).To(Equal(expBody))
 
 	t.Log("Claim a set with no payload")
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
@@ -154,10 +122,7 @@ func TestSets(t *testing.T) {
 
 	t.Log("Claim a set with invalid json payload")
 	payload := []byte(`foo`)
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
@@ -166,10 +131,7 @@ func TestSets(t *testing.T) {
 	s1 := g1.FindExpandSet()
 	t.Log("Claim a set with invalid username in payload")
 	payload = claimPayload("nonplayer", s1[0], s1[1], s1[2])
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value: nonplayer for arg: username\n")
@@ -177,10 +139,7 @@ func TestSets(t *testing.T) {
 
 	t.Log("Claim a set with non-set in payload (penalty)")
 	payload = claimPayload("p1", s1[1], s1[1], s1[2])
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1ClaimFail *set.Game
 	dec = json.NewDecoder(resp.Body)
@@ -191,10 +150,7 @@ func TestSets(t *testing.T) {
 
 	t.Log("Claim a set")
 	payload = claimPayload("p1", s1[0], s1[1], s1[2])
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1Claimed *set.Game
 	dec = json.NewDecoder(resp.Body)
@@ -206,20 +162,14 @@ func TestSets(t *testing.T) {
 	// TODO: DeepEqual sets
 
 	t.Log("Claim a set in invalid game state")
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusConflict))
 	expBody = fmt.Sprintf("Failed to claim set in game: Invalid method: ClaimSet detail: round already claimed by p1\n")
 	g.Expect(string(body)).To(Equal(expBody))
 
 	t.Log("Valid Next round request")
-	r = httptest.NewRequest("POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
-	w = httptest.NewRecorder()
-	tr.ServeHTTP(w, r)
-	resp = w.Result()
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1Next *set.Game
 	dec = json.NewDecoder(resp.Body)
@@ -280,6 +230,7 @@ func gameMap(gs ...*set.Game) map[uuid.UUID]*set.Game {
 	}
 	return m
 }
+
 func claimPayload(username string, c1, c2, c3 *set.Card) []byte {
 	cd := claimData{
 		Username: username,
@@ -292,4 +243,15 @@ func claimPayload(username string, c1, c2, c3 *set.Card) []byte {
 		panic(fmt.Sprintf("Unexpected Marshal err: %s", err))
 	}
 	return payload
+}
+
+func doRequest(
+	tr *router.TableRouter,
+	method, target string,
+	reqBody io.Reader,
+) *http.Response {
+	r := httptest.NewRequest(method, target, reqBody)
+	w := httptest.NewRecorder()
+	tr.ServeHTTP(w, r)
+	return w.Result()
 }
