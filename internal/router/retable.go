@@ -14,7 +14,7 @@ type TableRouter struct {
 }
 
 // AddRoute adds given handler for route matching given pattern and method
-func (tr *TableRouter) AddRoute(method, pattern string, handler http.HandlerFunc) {
+func (tr *TableRouter) AddRoute(method, pattern string, handler http.Handler) {
 	tr.routes = append(tr.routes, newRoute(method, pattern, handler))
 }
 
@@ -29,7 +29,7 @@ func (tr *TableRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			ctx := context.WithValue(r.Context(), ctxKey{}, matches[1:])
-			route.handler(w, r.WithContext(ctx))
+			route.handler.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 	}
@@ -44,10 +44,10 @@ func (tr *TableRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type route struct {
 	method  string
 	regex   *regexp.Regexp
-	handler http.HandlerFunc
+	handler http.Handler
 }
 
-func newRoute(method, pattern string, handler http.HandlerFunc) route {
+func newRoute(method, pattern string, handler http.Handler) route {
 	return route{method, regexp.MustCompile("^" + pattern + "$"), handler}
 }
 

@@ -1,0 +1,172 @@
+/* Move down content because we have a fixed navbar that is 3.5rem tall */
+#main {
+  padding-top: 3.5rem;
+}
+
+.icon-btn {
+  line-height: 1;
+  border-width: 0;
+}
+
+.panel-label {
+  font-weight: bold;
+}
+
+#grid {
+  font-size: 1em;
+  padding-left: 1rem;
+}
+
+.grid-cell {
+  font-weight: bold;
+  text-align: center;
+  /* XXX use bootstrap colors */
+  border: 5px solid #124da1;
+  border-collapse: collapse;
+  /* XXX doesn't work in table? */
+  border-radius: 5px;
+}
+
+.grid-content {
+  margin: .25em;
+  width: 1.6em; 
+}
+
+.grid-content:hover, .grid-content:focus {
+  /* XXX use bootstrap colors */
+  color: #bad4f7;
+  background: #124da1;
+}
+
+.grid-cell[selected] {
+  /* XXX use bootstrap colors */
+  background: #bad4f7;
+}
+
+.invisible {
+  opacity: 0;
+}
+
+.word-item {
+  padding: 0;
+  border: 1px solid rgba(0,0,0,0);
+  width: 7em;
+  /* XXX use bootstrap SASS variable or mixin? Didn't work...*/
+  background-color: #f8f9fa;
+}
+
+.word-entry-item {
+  padding: 0;
+  border: 1px solid rgba(0,0,0,0);
+  /* XXX use bootstrap SASS variable or mixin? Didn't work...*/
+  background-color: #f8f9fa;
+}
+
+.word-entry-addon {
+  width: 34.34px;
+}
+
+.word-panel {
+  overflow-y: auto;
+  max-height: calc(100vh - 96px);
+  max-width: 10em;
+}
+
+@media (min-width: 992px) {
+  #grid {
+    font-size: 2.2em;
+  }
+}
+
+/* XXX use bootstrap media-breakpoint-up(sm)? Couldn't make it work... */
+@media (max-width: 576px) {
+  .word-panel {
+    max-height: calc(100vh - 350px);
+  }
+
+  /* For vp width < 576 and vp height < 500, there is no room for a scrolling
+   * word panel so we just scroll the whole main container. XXX it would 
+   * probably be better to change the bootstrap sm breakpoint to something 
+   * like 480 to keep the side-by-side layout for smaller widths. iPhone 4 
+   * and 5 in landscape orientation are the problematic devices here.
+   */
+  @media (max-height: 480px) {
+    .word-panel {
+      max-height: none;
+    }
+  }
+}
+
+#user-entry-list {
+  display: none;  
+}
+
+.word-list {
+  overflow: auto;
+}
+
+.word-list a {
+  text-decoration: underline;
+}
+
+.bawgle-help {
+  margin: 2em;
+}
+
+.invisible {
+  opacity: 0;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.modalbox .box {
+  background-color: rgba(0,14,28,0.6);
+  margin: 110px auto;
+  padding: 40px;
+  /* max-width: max-content; seems to work on chrome, not FF */
+  max-width: 267px;
+  border-radius: 30px;
+}
+
+@media (max-height: 480px) {
+  .modalbox .box {
+    margin: 10px auto;
+  }
+}
+
+.big-button {
+  margin: 0;
+  padding: 0 0 10px;
+  color: #fff;
+  background: transparent; 
+}
+
+.big-button-label {
+  font-size: 14px;
+  color: #fff;
+  background: transparent;
+}
+
+.big-button-span {
+  font-size: 182px;
+}
+
+.modalbox {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  color:#333333;
+}
+

@@ -39,7 +39,12 @@ func logHandler(fn http.HandlerFunc) http.HandlerFunc {
 func newTableRouter() *router.TableRouter {
 	daoSets := ram.NewSets()
 	tr := new(router.TableRouter)
+
+	// API routes
 	services.SetsAddRoutes(daoSets, tr)
+
+	// static routes
+	tr.AddRoute("GET", "/.*", http.StripPrefix("/", http.FileServer(http.Dir("ui"))))
 	return tr
 }
 

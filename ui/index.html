@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Bawgle</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="css/main.css"/>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar fixed-top navbar-light bg-light justify-content-between">
+        <form class="form-inline my-0">
+          <button class="btn btn-outline-secondary mr-1" id="new" type="button">New</button>
+          <button class="btn btn-outline-secondary mr-1" id="playing" type="button">Play</button>
+          <button class="btn btn-outline-secondary mr-1" id="solve" type="button">Solve</button>
+        </form>
+        <form class="form-inline my-0">
+          <button class="btn btn-outline-secondary mr-1 px-0 icon-btn" id="help" type="button">
+            <span class="material-icons md-16">help_outline</span>
+          </button>
+          <!-- fullscreen seems broken, see comments in bawgle-api-client.js
+          <button class="btn btn-outline-secondary mr-1 px-0 icon-btn" id="full-screen">
+            <span class="material-icons md-16">fullscreen</span>
+          </button>
+          -->
+        </form>
+      </nav>
+    </header>
+    <div class="container" id="main">
+      <div class="row justify-content-center">
+        <div class="my-2 col-sm-5 col-md-6" id="left-panel">
+          <span id="status" class="panel-label">01:04</span>
+          <table id="grid" class="noselect">
+          </table>
+        </div>
+        <div class="col my-2" id="center-panel">
+          <span id="your-words-label" class="panel-label">Your words:</span>
+          <div class="bg-light word-panel">
+            <form>
+              <ul id="user-word-list" class="list-group word-list">
+              </ul>
+            </form>
+          </div>
+        </div>
+        <div class="col my-2" id="right-panel">
+          <span id="solution-label" class="panel-label">Solution:</span>
+          <div class="bg-light word-panel">
+            <ul id="solution-word-list" class="list-group word-list">
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modalbox" id="start-modal">
+      <div class="box">
+	<button class="big-button" id="start-button" autofocus>
+	  <span class="big-button-span material-icons md-36" id="playing-icon" >play_arrow</span>
+	  <br>
+	  <span class="big-button-label" >Press to start</span>
+	</button>
+      </div>
+    </div>
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.6/umd/popper.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+    <script src="/scripts/bawgle-api-client.js"></script>
+  </body>
+</html>
