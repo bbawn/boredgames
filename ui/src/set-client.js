@@ -263,11 +263,7 @@ function addGridCellLetter(gridCell) {
 var GameContext = function() {
   this.rows = 3;             // XXX move to config object?
   this.columns = 4;          // XXX move to config object?
-  this.board = [];         // array, not string because qu
-  this.userWords = [];       // PERF: would set or object be better?
-  this.solutionWords = {};   // key: word, value: count
-  this.userScore = undefined;           // XXX move calc to client?
-  this.solutionScore = undefined;       // XXX move calc to client?
+    this.game = null;
   this.currentState = new StartState(this);
 
   this.changeState = function(state) {
