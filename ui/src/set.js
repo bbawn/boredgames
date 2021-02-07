@@ -53,15 +53,17 @@ function renderBoard(board) {
     for (let j = 0; j < 4; j++) {
       const cell = document.createElement('td');
       const cellDiv = document.createElement('div');
+      const img = document.createElement('img');
+      img.name = 'i' + i + '-' + j;
+      img.src = '/img/' + board[i * 4 + j] + '.gif'
       console.log('i', i, 'j', j, 'board', board[i*4+j]);
 
+      cellDiv.appendChild(img);
       cell.appendChild(cellDiv);
       row.appendChild(cell);
 
       cell.className = 'grid-cell';
       cell.id = 'c' + i + '-' + j;
-      cellDiv.className = 'grid-content';
-      cellDiv.textContent = board[i * 4 + j];
     }
   }
   gridPanelDiv.appendChild(grid);

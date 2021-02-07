@@ -27,11 +27,6 @@
   border-radius: 5px;
 }
 
-.grid-content {
-  margin: .25em;
-  width: 1.6em; 
-}
-
 .grid-content:hover, .grid-content:focus {
   /* XXX use bootstrap colors */
   color: #bad4f7;
