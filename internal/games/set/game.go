@@ -156,13 +156,13 @@ func CardBase3ToCard(cb3 CardBase3) *Card {
 		Shading: Shading(cb3 / 27),
 		Shape:   Shape((cb3 % 27) / 9),
 		Color:   Color((cb3 % 9) / 3),
-		Count:   byte(cb3 % 3),
+		Count:   byte(cb3%3) + 1,
 	}
 }
 
 // CardToCardBase3 returns the CardBase3 for the given Card
 func CardToCardBase3(c *Card) CardBase3 {
-	return CardBase3(byte(c.Shading*27) + byte(c.Shape*9) + byte(c.Color*3) + c.Count)
+	return CardBase3(byte(c.Shading*27) + byte(c.Shape*9) + byte(c.Color*3) + (c.Count - 1))
 }
 
 // IsSet returns true if the given cards are a set, false otherwise
