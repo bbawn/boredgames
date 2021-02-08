@@ -1,6 +1,4 @@
 let model;
-let view;
-// let controller;
 
 function SetModel() {
   this.game = null;
@@ -89,6 +87,7 @@ function initialize() {
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {
+  console.log('DOMContentLoaded', event);
   initialize();
 });
 
