@@ -50,14 +50,17 @@ function renderBoard(board) {
     grid.appendChild(row);
     for (let j = 0; j < 4; j++) {
       const cell = document.createElement('td');
-      const cellDiv = document.createElement('div');
+      const a = document.createElement('a');
       const img = document.createElement('img');
+      img.alt = 'i' + i + '-' + j;
       img.name = 'i' + i + '-' + j;
       img.src = '/img/' + board[i * 4 + j] + '.gif'
+      img.onclick = toggleCellSelected;
+
       console.log('i', i, 'j', j, 'board', board[i*4+j]);
 
-      cellDiv.appendChild(img);
-      cell.appendChild(cellDiv);
+      a.appendChild(img);
+      cell.appendChild(a);
       row.appendChild(cell);
 
       cell.className = 'grid-cell';
@@ -65,6 +68,19 @@ function renderBoard(board) {
     }
   }
   gridPanelDiv.appendChild(grid);
+}
+
+function toggleCellSelected(ev) {
+  console.log('toggleCellSelected: this ', this);
+  console.log('toggleCellSelected: ev', ev);
+  const td = this.parentElement.parentElement;
+  if (this.classList.contains('grid-selected')) {
+    this.classList.remove('grid-selected');
+    td.classList.remove('grid-selected');
+  } else {
+    this.classList.add('grid-selected');
+    td.classList.add('grid-selected');
+  }
 }
 
 function initialize() {

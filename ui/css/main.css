@@ -25,6 +25,7 @@
   border-collapse: collapse;
   /* XXX doesn't work in table? */
   border-radius: 5px;
+  padding: 10px;
 }
 
 .grid-content:hover, .grid-content:focus {
@@ -33,9 +34,9 @@
   background: #124da1;
 }
 
-.grid-cell[selected] {
+.grid-selected {
   /* XXX use bootstrap colors */
-  background: #bad4f7;
+  background: yellow;
 }
 
 .invisible {
