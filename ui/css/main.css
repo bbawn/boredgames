@@ -1,15 +1,6 @@
 /* Move down content because we have a fixed navbar that is 3.5rem tall */
 #main {
-  padding-top: 3.5rem;
-}
-
-.icon-btn {
-  line-height: 1;
-  border-width: 0;
-}
-
-.panel-label {
-  font-weight: bold;
+  padding-top: 6rem;
 }
 
 #grid {
@@ -43,31 +34,6 @@
   opacity: 0;
 }
 
-.word-item {
-  padding: 0;
-  border: 1px solid rgba(0,0,0,0);
-  width: 7em;
-  /* XXX use bootstrap SASS variable or mixin? Didn't work...*/
-  background-color: #f8f9fa;
-}
-
-.word-entry-item {
-  padding: 0;
-  border: 1px solid rgba(0,0,0,0);
-  /* XXX use bootstrap SASS variable or mixin? Didn't work...*/
-  background-color: #f8f9fa;
-}
-
-.word-entry-addon {
-  width: 34.34px;
-}
-
-.word-panel {
-  overflow-y: auto;
-  max-height: calc(100vh - 96px);
-  max-width: 10em;
-}
-
 @media (min-width: 992px) {
   #grid {
     font-size: 2.2em;
@@ -91,18 +57,6 @@
       max-height: none;
     }
   }
-}
-
-#user-entry-list {
-  display: none;  
-}
-
-.word-list {
-  overflow: auto;
-}
-
-.word-list a {
-  text-decoration: underline;
 }
 
 .bawgle-help {

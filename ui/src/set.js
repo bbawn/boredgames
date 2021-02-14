@@ -33,10 +33,10 @@ function SetModel() {
 
 function renderBoard(board) {
   console.log('renderBoard', board);
-  const gridPanelDiv = document.getElementById('left-panel');
+  const main = document.getElementById('main');
   let grid = document.getElementById('grid');
   if (grid) {
-    gridPanelDiv.removeChild(grid);
+    main.removeChild(grid);
   }
   grid = document.createElement('table');
 
@@ -67,7 +67,7 @@ function renderBoard(board) {
       cell.id = 'c' + i + '-' + j;
     }
   }
-  gridPanelDiv.appendChild(grid);
+  main.appendChild(grid);
 }
 
 function toggleCellSelected(ev) {
