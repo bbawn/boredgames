@@ -76,7 +76,7 @@ func daoTest(t *testing.T, s Sets) {
 
 	// Update game
 	set := g0.FindExpandSet()
-	g0.ClaimSet("p0", set[0], set[1], set[2])
+	g0.ClaimSet("p0", *set)
 	err = s.Update(g0)
 	if err != nil {
 		t.Errorf("Unexpected err %s on Insert", err)

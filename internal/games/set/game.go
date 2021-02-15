@@ -165,16 +165,19 @@ func CardToCardBase3(c *Card) CardBase3 {
 	return CardBase3(byte(c.Shading*27) + byte(c.Shape*9) + byte(c.Color*3) + (c.Count - 1))
 }
 
+// CardTriple set of three cards that are a Potential Set
+type CardTriple [SetLen]Card
+
 // IsSet returns true if the given cards are a set, false otherwise
-func IsSet(c1, c2, c3 *Card) bool {
-	if *c1 == *c2 || *c2 == *c3 || *c1 == *c3 {
+func IsSet(cs CardTriple) bool {
+	if cs[0] == cs[1] || cs[1] == cs[2] || cs[0] == cs[2] {
 		// Duplicates are not even a valid non-set, warn here?
 		return false
 	}
-	return setMatch(byte(c1.Shading), byte(c2.Shading), byte(c3.Shading)) &&
-		setMatch(byte(c1.Shape), byte(c2.Shape), byte(c3.Shape)) &&
-		setMatch(byte(c1.Color), byte(c2.Color), byte(c3.Color)) &&
-		setMatch(c1.Count, c2.Count, c3.Count)
+	return setMatch(byte(cs[0].Shading), byte(cs[1].Shading), byte(cs[2].Shading)) &&
+		setMatch(byte(cs[0].Shape), byte(cs[1].Shape), byte(cs[2].Shape)) &&
+		setMatch(byte(cs[0].Color), byte(cs[1].Color), byte(cs[2].Color)) &&
+		setMatch(cs[0].Count, cs[1].Count, cs[2].Count)
 }
 
 // setMatch return true if the given bytes are a "match" by Set rules:
@@ -184,7 +187,7 @@ func setMatch(b1, b2, b3 byte) bool {
 	return ret
 }
 
-// Deck is a deck of set cards
+// Deck is a deck of set Set cards
 type Deck []*Card
 
 // Pop removes and returns to top of the deck
@@ -197,9 +200,9 @@ func (d *Deck) Pop() *Card {
 // Board is a layout of cards
 type Board []*Card
 
-// FindSet returns a set or non-set from the given board or empty array if
+// FindSet returns a set or non-set from the given board or nil if
 // there are none
-func (b Board) FindSet(set bool) []*Card {
+func (b Board) FindSet(set bool) *CardTriple {
 	// Enumerate each set on board
 	for i := 0; i < len(b)-2; i++ {
 		c1 := b[i]
@@ -210,8 +213,9 @@ func (b Board) FindSet(set bool) []*Card {
 					for k := j + 1; k < len(b); k++ {
 						c3 := b[k]
 						if c3 != nil {
-							if IsSet(c1, c2, c3) == set {
-								return []*Card{c1, c2, c3}
+							ct := CardTriple{*c1, *c2, *c3}
+							if IsSet(ct) == set {
+								return &ct
 							}
 						}
 					}
@@ -219,28 +223,28 @@ func (b Board) FindSet(set bool) []*Card {
 			}
 		}
 	}
-	return []*Card{}
+	return nil
 }
 
 // FindExpandSet return a set on the board, expanding until one is found
 // or the game's deck is exhausted
-func (g *Game) FindExpandSet() []*Card {
+func (g *Game) FindExpandSet() *CardTriple {
 	for true {
 		s := g.Board.FindSet(true)
-		if len(s) == SetLen {
+		if s != nil {
 			return s
 		}
 		if !g.ExpandBoard() {
-			return []*Card{}
+			return nil
 		}
 	}
 	panic("unreachable")
 }
 
 // FindCard returns the index of the given card on the Board or -1 if not found
-func (b Board) FindCard(c *Card) int {
+func (b Board) FindCard(c Card) int {
 	for i := 0; i < len(b); i++ {
-		if b[i] != nil && *b[i] == *c {
+		if b[i] != nil && *b[i] == c {
 			return i
 		}
 	}
@@ -250,7 +254,7 @@ func (b Board) FindCard(c *Card) int {
 // Player is a participant in a set game
 type Player struct {
 	Username string
-	Sets     [][]*Card
+	Sets     []CardTriple
 }
 
 // Game is an instance of a set game
@@ -259,7 +263,7 @@ type Game struct {
 	Players         map[string]*Player
 	Deck            Deck
 	Board           Board
-	ClaimedSet      []*Card
+	ClaimedSet      CardTriple
 	ClaimedUsername string
 	// TODO(bbawn): do we need a logical timestamp field to detect stale operations?
 }
@@ -344,21 +348,20 @@ func (g *Game) ExpandBoard() bool {
 // the given set is copied to the Game's ClaimedSet (so that it can be displayed
 // prior to the next round) and is added to the given player's collection and
 // nil is returned.
-func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
-	if g.ClaimedUsername != "" {
+func (g *Game) ClaimSet(username string, cs CardTriple) error {
+	if g.GetState() != Playing {
 		return InvalidStateError{"ClaimSet", "round already claimed by " + username}
 	}
 	p, present := g.Players[username]
 	if !present {
 		return InvalidArgError{"username", username}
 	}
-	if !IsSet(c1, c2, c3) {
+	if !IsSet(cs) {
 		g.penalty(p)
 		// Illegal move, but not an error (we must update datastore)
 		return nil
 	}
-	set := []*Card{c1, c2, c3}
-	for _, c := range set {
+	for _, c := range cs {
 		i := g.Board.FindCard(c)
 		if i < 0 {
 			g.penalty(p)
@@ -367,15 +370,15 @@ func (g *Game) ClaimSet(username string, c1, c2, c3 *Card) error {
 		}
 		g.Board[i] = nil
 	}
-	p.Sets = append(p.Sets, set)
+	p.Sets = append(p.Sets, cs)
 	g.ClaimedUsername = username
-	g.ClaimedSet = set
+	g.ClaimedSet = cs
 	return nil
 }
 
 // NextRound transitions a game in Claimed Set state to the next round
 func (g *Game) NextRound() error {
-	if len(g.ClaimedSet) != SetLen {
+	if g.GetState() != SetClaimed {
 		return InvalidStateError{"NextRound", "round not yet claimed"}
 	}
 	for i, _ := range g.Board {
@@ -397,12 +400,12 @@ func (g *Game) NextRound() error {
 		g.Board = newBoard
 	}
 	g.ClaimedUsername = ""
-	g.ClaimedSet = nil
+	g.ClaimedSet = CardTriple{}
 	return nil
 }
 
 func (g *Game) GetState() State {
-	if g.ClaimedSet == nil {
+	if g.ClaimedUsername == "" {
 		return Playing
 	} else {
 		return SetClaimed
@@ -412,7 +415,7 @@ func (g *Game) GetState() State {
 func (g *Game) penalty(p *Player) {
 	if len(p.Sets) > 0 {
 		penaltySet := p.Sets[len(p.Sets)-1]
-		g.Deck = append(g.Deck, penaltySet...)
+		g.Deck = append(g.Deck, &penaltySet[0], &penaltySet[1], &penaltySet[2])
 		p.Sets = p.Sets[:len(p.Sets)-1]
 	}
 }

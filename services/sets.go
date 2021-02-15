@@ -105,8 +105,8 @@ func (s *Sets) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 type claimData struct {
-	Username            string
-	Card1, Card2, Card3 *set.Card
+	Username string
+	Cards    set.CardTriple
 }
 
 func (s *Sets) Claim(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +127,7 @@ func (s *Sets) Claim(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), httpStatus(err))
 		return
 	}
-	err = game.ClaimSet(cd.Username, cd.Card1, cd.Card2, cd.Card3)
+	err = game.ClaimSet(cd.Username, cd.Cards)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to claim set in game: %s", err), httpStatus(err))
 		return

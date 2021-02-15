@@ -150,7 +150,7 @@ func TestSets(t *testing.T) {
 
 	s1 := g1.FindExpandSet()
 	t.Log("Claim a set with invalid username in payload")
-	payload = claimPayload("nonplayer", s1[0], s1[1], s1[2])
+	payload = claimPayload("nonplayer", *s1)
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -158,7 +158,8 @@ func TestSets(t *testing.T) {
 	g.Expect(string(body)).To(Equal(expBody))
 
 	t.Log("Claim a set with non-set in payload (penalty)")
-	payload = claimPayload("p1", s1[1], s1[1], s1[2])
+	nonset := g1.Board.FindSet(false)
+	payload = claimPayload("p1", *nonset)
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1ClaimFail *set.Game
@@ -169,7 +170,7 @@ func TestSets(t *testing.T) {
 	g.Expect(g1ClaimFail.GetState()).To(Equal(set.Playing))
 
 	t.Log("Claim a set")
-	payload = claimPayload("p1", s1[0], s1[1], s1[2])
+	payload = claimPayload("p1", *s1)
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var g1Claimed *set.Game
@@ -251,12 +252,10 @@ func gameMap(gs ...*set.Game) map[uuid.UUID]*set.Game {
 	return m
 }
 
-func claimPayload(username string, c1, c2, c3 *set.Card) []byte {
+func claimPayload(username string, cs set.CardTriple) []byte {
 	cd := claimData{
 		Username: username,
-		Card1:    c1,
-		Card2:    c2,
-		Card3:    c3,
+		Cards:    cs,
 	}
 	payload, err := json.Marshal(&cd)
 	if err != nil {
