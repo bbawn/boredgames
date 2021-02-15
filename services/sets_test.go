@@ -137,7 +137,7 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
+	expBody = fmt.Sprintf("Failed to unmarshal claim data: EOF\n")
 	g.Expect(string(body)).To(Equal(expBody))
 
 	t.Log("Claim a set with invalid json payload")
@@ -145,7 +145,15 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value:  for arg: username\n")
+	expBody = fmt.Sprintf("Failed to unmarshal claim data: invalid character 'o' in literal false (expecting 'a')\n")
+	g.Expect(string(body)).To(Equal(expBody))
+
+	t.Log("Claim a set with invalid card values")
+	payload = []byte(`{ "username": "p1", "cards": [ "foo", "bar", "baz" ] }`)
+	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
+	body, _ = ioutil.ReadAll(resp.Body)
+	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+	expBody = fmt.Sprintf("Failed to unmarshal claim data: Card string must have len 4: foo\n")
 	g.Expect(string(body)).To(Equal(expBody))
 
 	s1 := g1.FindExpandSet()

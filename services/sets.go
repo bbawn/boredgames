@@ -117,9 +117,9 @@ func (s *Sets) Claim(w http.ResponseWriter, r *http.Request) {
 	}
 	var cd claimData
 	dec := json.NewDecoder(r.Body)
-	dec.Decode(&cd)
+	err = dec.Decode(&cd)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal claim data: %s", err), httpStatus(err))
+		http.Error(w, fmt.Sprintf("Failed to unmarshal claim data: %s", err), http.StatusBadRequest)
 		return
 	}
 	game, err := s.dao.Get(uuid)
