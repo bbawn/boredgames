@@ -1,29 +1,5 @@
 let model;
 
-function call(method, path, data) {
-  return new Promise((resolve, reject) => {
-    const url = new URL(path, document.location.origin);
-    fetch(url, {
-      method: method,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    }).then((response) => {
-      if (! response.ok) {
-        console.log('Network request for ' + url + ' failed with response ' +
-                    response.status + ': ' + response.statusText);
-        reject();
-      }
-      console.log('response.body', response.body);
-      return response.json().then((json) => {
-        this.game = json;
-        resolve();
-      });
-    });
-  });
-}
-
 // Model for the Set Game
 function SetModel() {
   this.game = null;
@@ -64,10 +40,25 @@ function SetModel() {
     const d = { username: 'p1', cards: [ set[0], set[1], set[2] ] };
     return this.Call('POST', '/sets/' + this.game.ID + '/claim', d);
   }
+
+  // Start the next round
+  this.Next = function() {
+    return this.Call('POST', '/sets/' + this.game.ID + '/next');
+  }
 }
 
-function renderBoard(board) {
-  console.log('renderBoard', board);
+  // getState returns the state of the game
+function getState(game) {
+  if (game.ClaimedUsername === '') {
+    return 'Playing';
+  } else {
+    return 'SetClaimed';
+  }
+}
+
+function render(game) {
+  console.log('render', game);
+  const state = getState(game);
   const main = document.getElementById('main');
   let grid = document.getElementById('grid');
   if (grid) {
@@ -87,13 +78,14 @@ function renderBoard(board) {
       const cell = document.createElement('td');
       const a = document.createElement('a');
       const img = document.createElement('img');
-      const card = board[i * 4 + j]
+      const card = game.Board[i * 4 + j] || `empty_card`;
       img.alt = card;
       img.src = '/img/' + card + '.gif'
-      img.onclick = toggleCellSelected;
+      if (state === 'Playing') {
+        img.onclick = toggleCellSelected;
+      }
 
-      console.log('i', i, 'j', j, 'board', board[i*4+j]);
-
+      console.log('i', i, 'j', j, 'board', game.Board[i*4+j]);
       a.appendChild(img);
       cell.appendChild(a);
       row.appendChild(cell);
@@ -103,6 +95,8 @@ function renderBoard(board) {
     }
   }
   main.appendChild(grid);
+  const nextButton = document.getElementById('next');
+  nextButton.disabled = (state === 'Playing');
 }
 
 function toggleCellSelected(ev) {
@@ -123,27 +117,36 @@ function checkGridForSet() {
   var selectedTds = document.getElementsByClassName('grid-selected');
   if (selectedTds.length > 2) {
     console.log('checkGridForSet selectedTds[0]', selectedTds[0]);
-    // selectedTds.foreach(td => set.push(td));
     const set = Array.from(selectedTds).map(td => td.id);
-    model.ClaimSet(set);
+    model.ClaimSet(set)
+      .then(() => {
+        console.log('claim() response: model.game', model.game);
+        render(model.game);
+      });
   }
 }
 
 function initialize() {
   const newButton = document.getElementById('new');
+  const nextButton = document.getElementById('next');
   const helpButton = document.getElementById('help');
 
   model = new SetModel();
   newButton.onclick = function() {
     model.NewGame()
     .then(() => {
-      console.log('model.game', model.game);
-      // XXX case problem board v Board
-      renderBoard(model.game.Board);
+      console.log('new model.game', model.game);
+      render(model.game);
     });
   };
+  nextButton.onclick = function() {
+    model.Next()
+      .then(() => {
+        console.log('next() response: model.game', model.game);
+        render(model.game);
+      });
+  };
   helpButton.onclick = function() {
-    /* location.assign('help.html'); */
     window.open('help.html', '_blank');
   };
 }
