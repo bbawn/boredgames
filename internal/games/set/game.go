@@ -234,7 +234,7 @@ func (g *Game) FindExpandSet() *CardTriple {
 		if s != nil {
 			return s
 		}
-		if !g.ExpandBoard() {
+		if !g.expandBoard() {
 			return nil
 		}
 	}
@@ -320,7 +320,7 @@ func NewGame(usernames ...string) (*Game, error) {
 // ExpandBoard adds a new set-length column to the Game's board
 // from the Game's deck. Returns true if there were enough cards
 // in the deck, otherwise false.
-func (g *Game) ExpandBoard() bool {
+func (g *Game) expandBoard() bool {
 	for i := 0; i < SetLen; i++ {
 		if len(g.Deck) == 0 {
 			return false
@@ -350,7 +350,7 @@ func (g *Game) ExpandBoard() bool {
 // nil is returned.
 func (g *Game) ClaimSet(username string, cs CardTriple) error {
 	if g.GetState() != Playing {
-		return InvalidStateError{"ClaimSet", "round already claimed by " + username}
+		return InvalidStateError{"ClaimSet", "round already claimed by " + g.ClaimedUsername}
 	}
 	p, present := g.Players[username]
 	if !present {
@@ -376,29 +376,41 @@ func (g *Game) ClaimSet(username string, cs CardTriple) error {
 	return nil
 }
 
+// Expand adds the next Card triplet when no players can find a set.
+// Only valid in playing state.
+func (g *Game) Expand() error {
+	if g.GetState() != Playing {
+		return InvalidStateError{"Expand", "only valid in claim state"}
+	}
+	g.expandBoard()
+	return nil
+}
+
 // NextRound transitions a game in Claimed Set state to the next round
 func (g *Game) NextRound() error {
 	if g.GetState() != SetClaimed {
 		return InvalidStateError{"NextRound", "round not yet claimed"}
 	}
-	for i, _ := range g.Board {
-		if g.Board[i] == nil {
-			if len(g.Deck) > 0 {
-				// Card remain in Deck, replace old set card with deck card
-				g.Board[i] = g.Deck.Pop()
-			}
-		}
-	}
-	if len(g.Deck) == 0 {
-		// Empty Deck, just remove old set cards
-		newBoard := []*Card{}
+
+	if len(g.Board) > InitBoardLen {
+		// The board has been expanded, remove remaining empty card slots
+		g.compress()
+	} else {
+		// Deal from deck to replace empty card slots
 		for i, _ := range g.Board {
-			if g.Board[i] != nil {
-				newBoard = append(newBoard, g.Board[i])
+			if g.Board[i] == nil {
+				if len(g.Deck) > 0 {
+					g.Board[i] = g.Deck.Pop()
+				}
 			}
 		}
-		g.Board = newBoard
 	}
+
+	if len(g.Deck) == 0 {
+		// Empty Deck, remove remaining empty card slots
+		g.compress()
+	}
+
 	g.ClaimedUsername = ""
 	g.ClaimedSet = CardTriple{}
 	return nil
@@ -410,6 +422,17 @@ func (g *Game) GetState() State {
 	} else {
 		return SetClaimed
 	}
+}
+
+// Compess removes empty cards from the game board
+func (g *Game) compress() {
+	newBoard := []*Card{}
+	for i, _ := range g.Board {
+		if g.Board[i] != nil {
+			newBoard = append(newBoard, g.Board[i])
+		}
+	}
+	g.Board = newBoard
 }
 
 func (g *Game) penalty(p *Player) {
