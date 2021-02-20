@@ -43,6 +43,11 @@ function SetModel() {
     return this.Call('POST', '/sets/' + this.game.ID + '/claim', d);
   }
 
+  // Expand the board
+  this.Expand = function() {
+    return this.Call('POST', '/sets/' + this.game.ID + '/expand');
+  }
+
   // Start the next round
   this.Next = function() {
     return this.Call('POST', '/sets/' + this.game.ID + '/next');
@@ -113,11 +118,12 @@ function createBoard(game) {
     row.id = 'r' + i;
     row.className = 'board-row';
     board.appendChild(row);
-    for (let j = 0; j < 4; j++) {
+    const nCols = game.Board.length / 3;
+    for (let j = 0; j < nCols; j++) {
       const cell = document.createElement('td');
       const a = document.createElement('a');
       const img = document.createElement('img');
-      const card = game.Board[i * 4 + j] || `empty_card`;
+      const card = game.Board[i * nCols + j] || `empty_card`;
       img.alt = card;
       img.src = '/img/' + card + '.gif'
       if (getState(game) === 'Playing') {
@@ -194,7 +200,8 @@ function checkBoardForSet() {
         console.log('claim() response: model.game', model.game);
         render(model.game);
       });
-  }
+  } 
+  cancelMachineTimer()
 }
 
 function removeAllChildren(parent) {
@@ -203,9 +210,15 @@ function removeAllChildren(parent) {
   }
 }
 
-function scheduleMachine() {
+let machineTimer
+function scheduleMachineTimer() {
   console.log(Date.now(), 'machineClaim: machineHandicap', model.config.machineHandicap);
-  setTimeout(machineClaim, model.config.machineHandicap * 1000)
+  clearTimeout(machineTimer);
+  machineTimer = setTimeout(machineClaim, model.config.machineHandicap * 1000);
+}
+
+function cancelMachineTimer() {
+  clearTimeout(machineTimer);
 }
 
 function machineClaim() {
@@ -264,7 +277,7 @@ function setMatch(b1, b2, b3) {
 
 function initialize() {
   const newButton = document.getElementById('new');
-  const nextButton = document.getElementById('next');
+  const dealButton = document.getElementById('deal');
   const helpButton = document.getElementById('help');
 
   model = new SetModel();
@@ -272,17 +285,26 @@ function initialize() {
     model.NewGame()
     .then(() => {
       console.log('new model.game', model.game);
-      scheduleMachine();
+      scheduleMachineTimer();
       render(model.game);
     });
   };
-  nextButton.onclick = function() {
-    model.Next()
-      .then(() => {
-        console.log('next() response: model.game', model.game);
-        scheduleMachine();
-        render(model.game);
-      });
+  dealButton.onclick = function() {
+    if (getState(model.game) === 'Playing') {
+      model.Expand()
+        .then(() => {
+          console.log('expand() response: model.game', model.game);
+          scheduleMachineTimer();
+          render(model.game);
+        });
+    } else {
+      model.Next()
+        .then(() => {
+          console.log('next() response: model.game', model.game);
+          scheduleMachineTimer();
+          render(model.game);
+        });
+    }
   };
   helpButton.onclick = function() {
     window.open('help.html', '_blank');
