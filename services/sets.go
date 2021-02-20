@@ -25,6 +25,7 @@ func SetsAddRoutes(dao dao.Sets, router *router.TableRouter) {
 	router.AddRoute("GET", "/sets/([^/]+)", http.HandlerFunc(s.Get))
 	router.AddRoute("DEL", "/sets/([^/]+)", http.HandlerFunc(s.Delete))
 	router.AddRoute("POST", "/sets/([^/]+)/claim", http.HandlerFunc(s.Claim))
+	router.AddRoute("POST", "/sets/([^/]+)/expand", http.HandlerFunc(s.Expand))
 	router.AddRoute("POST", "/sets/([^/]+)/next", http.HandlerFunc(s.Next))
 }
 
@@ -130,6 +131,35 @@ func (s *Sets) Claim(w http.ResponseWriter, r *http.Request) {
 	err = game.ClaimSet(cd.Username, cd.Cards)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to claim set in game: %s", err), httpStatus(err))
+		return
+	}
+	err = s.dao.Update(game)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update game in datastore: %s", err), httpStatus(err))
+		return
+	}
+	enc := json.NewEncoder(w)
+	err = enc.Encode(game)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode game next game: %s", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Sets) Expand(w http.ResponseWriter, r *http.Request) {
+	uuid, err := uuid.Parse(router.GetField(r, 0))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid set uuid %s: %s", router.GetField(r, 0), err), http.StatusNotFound)
+		return
+	}
+	game, err := s.dao.Get(uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get game from datastore: %s", err), httpStatus(err))
+		return
+	}
+	err = game.Expand()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to expand game board: %s", err), httpStatus(err))
 		return
 	}
 	err = s.dao.Update(game)
