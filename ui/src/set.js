@@ -2,7 +2,7 @@ let model;
 
 // Model for the Set Game
 function SetModel() {
-  this.config = {machineHandicap: 10}
+  this.config = {machineHandicap: 60}
   this.localUsername = 'p1'
   this.game = null;
 
