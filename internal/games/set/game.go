@@ -300,7 +300,7 @@ func NewGame(usernames ...string) (*Game, error) {
 		if _, present := g.Players[u]; present {
 			return nil, InvalidArgError{"username", u + " already present"}
 		}
-		g.Players[u] = &Player{Username: u}
+		g.Players[u] = &Player{Username: u, Sets: []CardTriple{}}
 	}
 	g.Deck = make([]*Card, FullDeckLen)
 	for i, _ := range g.Deck {

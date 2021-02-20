@@ -3,12 +3,17 @@
   padding-top: 6rem;
 }
 
-#grid {
+#board {
   font-size: 1em;
   padding-left: 1rem;
 }
 
-.grid-cell {
+#message {
+  padding-right: 4rem;
+  color: navy;
+}
+
+.board-cell {
   font-weight: bold;
   text-align: center;
   /* XXX use bootstrap colors */
@@ -19,13 +24,13 @@
   padding: 10px;
 }
 
-.grid-content:hover, .grid-content:focus {
+.board-content:hover, .board-content:focus {
   /* XXX use bootstrap colors */
   color: #bad4f7;
   background: #124da1;
 }
 
-.grid-selected {
+.board-selected {
   /* XXX use bootstrap colors */
   background: yellow;
 }
@@ -34,37 +39,24 @@
   opacity: 0;
 }
 
+.message-img {
+  height: 2em;
+  width: auto;
+}
+
+.score-cell {
+  text-align: center;
+}
+
+.score-header {
+  font-weight: bold;
+  text-align: center;
+}
+
 @media (min-width: 992px) {
-  #grid {
+  #board {
     font-size: 2.2em;
   }
-}
-
-/* XXX use bootstrap media-breakpoint-up(sm)? Couldn't make it work... */
-@media (max-width: 576px) {
-  .word-panel {
-    max-height: calc(100vh - 350px);
-  }
-
-  /* For vp width < 576 and vp height < 500, there is no room for a scrolling
-   * word panel so we just scroll the whole main container. XXX it would 
-   * probably be better to change the bootstrap sm breakpoint to something 
-   * like 480 to keep the side-by-side layout for smaller widths. iPhone 4 
-   * and 5 in landscape orientation are the problematic devices here.
-   */
-  @media (max-height: 480px) {
-    .word-panel {
-      max-height: none;
-    }
-  }
-}
-
-.bawgle-help {
-  margin: 2em;
-}
-
-.invisible {
-  opacity: 0;
 }
 
 .noselect {
@@ -76,47 +68,3 @@
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
-
-.modalbox .box {
-  background-color: rgba(0,14,28,0.6);
-  margin: 110px auto;
-  padding: 40px;
-  /* max-width: max-content; seems to work on chrome, not FF */
-  max-width: 267px;
-  border-radius: 30px;
-}
-
-@media (max-height: 480px) {
-  .modalbox .box {
-    margin: 10px auto;
-  }
-}
-
-.big-button {
-  margin: 0;
-  padding: 0 0 10px;
-  color: #fff;
-  background: transparent; 
-}
-
-.big-button-label {
-  font-size: 14px;
-  color: #fff;
-  background: transparent;
-}
-
-.big-button-span {
-  font-size: 182px;
-}
-
-.modalbox {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  color:#333333;
-}
-
