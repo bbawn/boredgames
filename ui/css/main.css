@@ -1,4 +1,5 @@
 /* Move down content because we have a fixed navbar that is 3.5rem tall */
+
 #main {
   padding-top: 6rem;
 }
@@ -6,6 +7,8 @@
 #board {
   font-size: 1em;
   padding-left: 1rem;
+  width: 100%;
+  table-layout: fixed;
 }
 
 #message {
@@ -14,14 +17,21 @@
 }
 
 .board-cell {
-  font-weight: bold;
-  text-align: center;
   /* XXX use bootstrap colors */
   border: 5px solid #124da1;
   border-collapse: collapse;
   /* XXX doesn't work in table? */
   border-radius: 5px;
   padding: 10px;
+}
+
+/* Empirically, it seems that setting max-width for all img elements it the
+ * only way I can find to scale the img to the table. .board-img and .board img
+ * don't get the value.
+ * Concern: what if we have img's that need different values?
+ */
+img {
+  max-width: 100%;
 }
 
 .board-content:hover, .board-content:focus {

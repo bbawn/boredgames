@@ -126,11 +126,11 @@ function createBoard(game) {
       const card = game.Board[i * nCols + j] || `empty_card`;
       img.alt = card;
       img.src = '/img/' + card + '.gif'
+      cell.className = 'board-img';
       if (getState(game) === 'Playing') {
         img.onclick = toggleCellSelected;
       }
 
-      console.log('i', i, 'j', j, 'board', game.Board[i*4+j]);
       a.appendChild(img);
       cell.appendChild(a);
       row.appendChild(cell);
