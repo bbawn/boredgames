@@ -1,1 +1,1 @@
-web: dist/boredgames
+web: bin/api
