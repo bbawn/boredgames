@@ -1,1 +1,1 @@
-web: bin/api
+web: bin/api -addr 0.0.0.0:$PORT
