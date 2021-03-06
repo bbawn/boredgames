@@ -153,6 +153,11 @@ function createScorecard(game) {
   head.appendChild(cell);
   cell = document.createElement('td');
   cell.className = 'score-header';
+  cellText = document.createTextNode('Handicap');
+  cell.appendChild(cellText);
+  head.appendChild(cell);
+  cell = document.createElement('td');
+  cell.className = 'score-header';
   cellText = document.createTextNode('Score');
   cell.appendChild(cellText);
   head.appendChild(cell);
@@ -168,12 +173,28 @@ function createScorecard(game) {
     row.appendChild(cell);
     cell = document.createElement('td');
     cell.className = 'score-cell';
+    if (username.toLowerCase() === 'machine') {
+      cellInput = document.createElement('input')
+      cellInput.type = 'number';
+      cellInput.value = model.config.machineHandicap;
+      cellInput.addEventListener('input', onHandicapInput);
+      cellInput.className = 'handicap-cell';
+      cell.appendChild(cellInput);
+    }
+    row.appendChild(cell);
+    cell = document.createElement('td');
+    cell.className = 'score-cell';
     cellText = document.createTextNode(player.Sets.length);
     cell.appendChild(cellText);
     row.appendChild(cell);
     scorecard.appendChild(row);
   }
   return scorecard;
+}
+
+function onHandicapInput(e) {
+  model.config.machineHandicap = parseInt(e.target.value);
+  console.log('onHandicapInpute machineHandicap', model.config.machineHandicap);
 }
 
 function toggleCellSelected(ev) {
