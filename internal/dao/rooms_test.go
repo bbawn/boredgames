@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/bbawn/boredgames/internal/dao/errors"
 	"github.com/bbawn/boredgames/internal/dao/ram"
 	"github.com/bbawn/boredgames/internal/rooms"
@@ -94,6 +96,26 @@ func testRooms(t *testing.T, rms Rooms) {
 	r, err = rms.DeletePlayer(r0.Name, "p2")
 	if err != nil {
 		t.Errorf("Unexpected err %s on DeletePlayer", err)
+	}
+	if !reflect.DeepEqual(r, r0) {
+		t.Errorf("Get returned %#v, expected %#v", r, r0)
+	}
+
+	// Retrieve existing room
+	r, err = rms.Get(r0.Name)
+	if err != nil {
+		t.Errorf("Unexpected err %s on Get", err)
+	}
+	if !reflect.DeepEqual(r, r0) {
+		t.Errorf("Get returned %#v, expected %#v", r, r0)
+	}
+
+	// Set room's game
+	r0.GameType = rooms.Set
+	r0.GameID = uuid.New()
+	r, err = rms.SetGame(r0.Name, r0.GameType, r0.GameID)
+	if err != nil {
+		t.Errorf("Unexpected err %s on SetTame", err)
 	}
 	if !reflect.DeepEqual(r, r0) {
 		t.Errorf("Get returned %#v, expected %#v", r, r0)

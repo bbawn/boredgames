@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
+
 	"github.com/bbawn/boredgames/internal/dao/errors"
 	"github.com/bbawn/boredgames/internal/rooms"
 )
@@ -27,11 +29,11 @@ func (rms *Rooms) List() ([]*rooms.Room, error) {
 	rs := []*rooms.Room{}
 	rms.m.Lock()
 	defer rms.m.Unlock()
-	for _, jGame := range rms.rooms {
+	for _, jRoom := range rms.rooms {
 		var r *rooms.Room
-		err := json.Unmarshal(jGame, &r)
+		err := json.Unmarshal(jRoom, &r)
 		if err != nil {
-			return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s", jGame)}
+			return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s", jRoom)}
 		}
 		rs = append(rs, r)
 	}
@@ -41,29 +43,29 @@ func (rms *Rooms) List() ([]*rooms.Room, error) {
 func (rms *Rooms) Insert(r *rooms.Room) error {
 	rms.m.Lock()
 	defer rms.m.Unlock()
-	jGame, ok := rms.rooms[r.Name]
+	jRoom, ok := rms.rooms[r.Name]
 	if ok {
 		return errors.AlreadyExistsError{r.Name}
 	}
-	jGame, err := json.Marshal(r)
+	jRoom, err := json.Marshal(r)
 	if err != nil {
 		return errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
-	rms.rooms[r.Name] = jGame
+	rms.rooms[r.Name] = jRoom
 	return nil
 }
 
 func (rms *Rooms) Get(name string) (*rooms.Room, error) {
 	rms.m.Lock()
 	defer rms.m.Unlock()
-	jGame, ok := rms.rooms[name]
+	jRoom, ok := rms.rooms[name]
 	if !ok {
 		return nil, errors.NotFoundError{name}
 	}
 	var r *rooms.Room
-	err := json.Unmarshal(jGame, &r)
+	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
+		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	return r, nil
 }
@@ -81,49 +83,71 @@ func (rms *Rooms) Delete(name string) error {
 func (rms *Rooms) AddPlayer(name, username string) (*rooms.Room, error) {
 	rms.m.Lock()
 	defer rms.m.Unlock()
-	jGame, ok := rms.rooms[name]
+	jRoom, ok := rms.rooms[name]
 	if !ok {
 		return nil, errors.NotFoundError{name}
 	}
 	var r *rooms.Room
-	err := json.Unmarshal(jGame, &r)
+	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
+		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	if _, ok := r.Usernames[username]; ok {
 		return nil, errors.AlreadyExistsError{username}
 	}
 	r.Usernames[username] = true
-	jGame, err = json.Marshal(r)
+	jRoom, err = json.Marshal(r)
 	if err != nil {
 		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
-	rms.rooms[r.Name] = jGame
+	rms.rooms[r.Name] = jRoom
 	return r, nil
 }
 
 func (rms *Rooms) DeletePlayer(name, username string) (*rooms.Room, error) {
 	rms.m.Lock()
 	defer rms.m.Unlock()
-	jGame, ok := rms.rooms[name]
+	jRoom, ok := rms.rooms[name]
 	if !ok {
 		return nil, errors.NotFoundError{name}
 	}
 	var r *rooms.Room
-	err := json.Unmarshal(jGame, &r)
+	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
+		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	if _, ok := r.Usernames[username]; !ok {
 		return nil, errors.NotFoundError{username}
 	}
 	// Remove element from players
 	delete(r.Usernames, username)
-	jGame, err = json.Marshal(r)
+	jRoom, err = json.Marshal(r)
 	if err != nil {
 		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
-	rms.rooms[r.Name] = jGame
+	rms.rooms[r.Name] = jRoom
+	return r, nil
+}
+
+func (rms *Rooms) SetGame(name string, typ rooms.GameType, id uuid.UUID) (*rooms.Room, error) {
+	rms.m.Lock()
+	defer rms.m.Unlock()
+	jRoom, ok := rms.rooms[name]
+	if !ok {
+		return nil, errors.NotFoundError{name}
+	}
+	var r *rooms.Room
+	err := json.Unmarshal(jRoom, &r)
+	if err != nil {
+		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
+	}
+	r.GameType = typ
+	r.GameID = id
+	jRoom, err = json.Marshal(r)
+	if err != nil {
+		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+	}
+	rms.rooms[r.Name] = jRoom
 	return r, nil
 }
 

@@ -74,7 +74,6 @@ func TestSets(t *testing.T) {
 	err = checkNewGame(r1, "p1", "p2", "p3")
 	r.Expect(err).To(BeNil())
 
-	d = `{ "name": "n2", "usernames": [ "p1", "p2", "p3" ] }`
 	d = `{ "name": "n2", "usernames": {"p1": true, "p2": true, "p3": true } }`
 	resp = doRequest(tr, "POST", "http://example.com/rooms", bytes.NewReader([]byte(d)))
 	r.Expect(resp.StatusCode).To(Equal(http.StatusOK))
