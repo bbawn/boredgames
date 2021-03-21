@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/bbawn/boredgames/internal/dao"
 	"github.com/bbawn/boredgames/internal/rooms"
 	"github.com/bbawn/boredgames/internal/router"
@@ -25,6 +27,7 @@ func RoomsAddRoutes(dao dao.Rooms, router *router.TableRouter) {
 	router.AddRoute("DEL", "/rooms/([^/]+)", http.HandlerFunc(rms.Delete))
 	router.AddRoute("POST", "/rooms/([^/]+)/players", http.HandlerFunc(rms.AddPlayer))
 	router.AddRoute("DEL", "/rooms/([^/]+)/players", http.HandlerFunc(rms.DeletePlayer))
+	router.AddRoute("PUT", "/rooms/([^/]+)/game", http.HandlerFunc(rms.SetGame))
 }
 
 // List returns the list of all rooms
@@ -50,7 +53,7 @@ type postData struct {
 	Usernames map[string]bool
 }
 
-func (pd *postData) validate() err {
+func (pd *postData) validate() error {
 	if pd.Name == "" {
 		return errors.New("non-empty Name is required")
 	}
@@ -68,12 +71,12 @@ func (rms *Rooms) Create(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&pd)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to unmarshal post data: %s", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Failed to unmarshal create data: %s", err), http.StatusBadRequest)
 		return
 	}
 	err = pd.validate()
 	if err != nil {
-		m := fmt.Sprintf("Invalid request payload: %s, err: %s", string(r.Body))
+		m := fmt.Sprintf("Invalid request payload err: %s", err)
 		http.Error(w, m, http.StatusBadRequest)
 		return
 	}
@@ -178,6 +181,39 @@ func (rms *Rooms) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 	room, err := rms.dao.DeletePlayer(name, pd.username)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to delete player from datastore: %s", err), httpStatus(err))
+		return
+	}
+	enc := json.NewEncoder(w)
+	err = enc.Encode(room)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to encode updated room: %s", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+// gameData is the payload of the game update PUT request
+type gameData struct {
+	typ rooms.GameType
+	id  uuid.UUID
+}
+
+// SetGame sets the game type and id for the room
+func (rms *Rooms) SetGame(w http.ResponseWriter, r *http.Request) {
+	name := router.GetField(r, 0)
+	if name == "" {
+		http.Error(w, fmt.Sprintf("Invalid room name %s:", router.GetField(r, 0)), http.StatusNotFound)
+		return
+	}
+	var gd gameData
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&gd)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to unmarshal game data: %s", err), http.StatusBadRequest)
+		return
+	}
+	room, err := rms.dao.SetGame(name, gd.typ, gd.id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update game: %s", err), httpStatus(err))
 		return
 	}
 	enc := json.NewEncoder(w)
