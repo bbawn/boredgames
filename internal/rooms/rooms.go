@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// GameType is the type of a game
 type GameType int
 
 const (
@@ -20,14 +21,15 @@ type Room struct {
 	// Name is the human-readable unique identifier of the Room
 	Name string
 	// Usernames are the usernames of players in the room
-	Usernames []string
+	Usernames map[string]bool
 	// GameType is the type of game currently being played in the room
 	GameType GameType
 	// GameID is the identifier of the current game being played in the room
 	GameID uuid.UUID
 }
 
-func NewRoom(name string, usernames ...string) *Room {
+// NewRoom creates a room with given name and players
+func NewRoom(name string, usernames map[string]bool) *Room {
 	r := new(Room)
 	r.Name = name
 	r.Usernames = usernames

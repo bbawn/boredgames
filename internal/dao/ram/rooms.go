@@ -10,6 +10,7 @@ import (
 	"github.com/bbawn/boredgames/internal/rooms"
 )
 
+// Rooms is the collection of fake dao roomms
 type Rooms struct {
 	m sync.RWMutex
 	// rooms stores json-serialized set Rooms
@@ -67,21 +68,6 @@ func (rms *Rooms) Get(name string) (*rooms.Room, error) {
 	return r, nil
 }
 
-func (rms *Rooms) Update(r *rooms.Room) error {
-	rms.m.Lock()
-	defer rms.m.Unlock()
-	jGame, ok := rms.rooms[r.Name]
-	if !ok {
-		return errors.NotFoundError{r.Name}
-	}
-	jGame, err := json.Marshal(r)
-	if err != nil {
-		return errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s", r.Name)}
-	}
-	rms.rooms[r.Name] = jGame
-	return nil
-}
-
 func (rms *Rooms) Delete(name string) error {
 	rms.m.Lock()
 	defer rms.m.Unlock()
@@ -92,6 +78,55 @@ func (rms *Rooms) Delete(name string) error {
 	return nil
 }
 
+func (rms *Rooms) AddPlayer(name, username string) (*rooms.Room, error) {
+	rms.m.Lock()
+	defer rms.m.Unlock()
+	jGame, ok := rms.rooms[name]
+	if !ok {
+		return nil, errors.NotFoundError{name}
+	}
+	var r *rooms.Room
+	err := json.Unmarshal(jGame, &r)
+	if err != nil {
+		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
+	}
+	if _, ok := r.Usernames[username]; ok {
+		return nil, errors.AlreadyExistsError{username}
+	}
+	r.Usernames[username] = true
+	jGame, err = json.Marshal(r)
+	if err != nil {
+		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+	}
+	rms.rooms[r.Name] = jGame
+	return r, nil
+}
+
+func (rms *Rooms) DeletePlayer(name, username string) (*rooms.Room, error) {
+	rms.m.Lock()
+	defer rms.m.Unlock()
+	jGame, ok := rms.rooms[name]
+	if !ok {
+		return nil, errors.NotFoundError{name}
+	}
+	var r *rooms.Room
+	err := json.Unmarshal(jGame, &r)
+	if err != nil {
+		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
+	}
+	if _, ok := r.Usernames[username]; !ok {
+		return nil, errors.NotFoundError{username}
+	}
+	// Remove element from players
+	delete(r.Usernames, username)
+	jGame, err = json.Marshal(r)
+	if err != nil {
+		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+	}
+	rms.rooms[r.Name] = jGame
+	return r, nil
+}
+
 func (rms *Rooms) Dump() string {
 	var b strings.Builder
 	rms.m.Lock()
@@ -100,4 +135,14 @@ func (rms *Rooms) Dump() string {
 		b.WriteString(fmt.Sprintf("name %s: room %s\n", name, room))
 	}
 	return b.String()
+}
+
+// find returns the index of given string in given slice of -1 for not found
+func find(ss []string, s string) int {
+	for i, elt := range ss {
+		if elt == s {
+			return i
+		}
+	}
+	return -1
 }

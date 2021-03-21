@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/bbawn/boredgames/internal/dao"
-	"github.com/bbawn/boredgames/internal/dao/errors"
 	"github.com/bbawn/boredgames/internal/games/set"
 	"github.com/bbawn/boredgames/internal/router"
 )
@@ -38,7 +37,8 @@ func (s *Sets) List(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	err = enc.Encode(games)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to encode games from datastore: %s", err), http.StatusInternalServerError)
+		m := fmt.Sprintf("Failed to encode games from datastore: %s", err)
+		http.Error(w, m, http.StatusInternalServerError)
 		return
 	}
 }
@@ -201,22 +201,5 @@ func (s *Sets) Next(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to encode game next game: %s", err), http.StatusInternalServerError)
 		return
-	}
-}
-
-func httpStatus(err error) int {
-	switch err.(type) {
-	case errors.AlreadyExistsError:
-		return http.StatusConflict
-	case errors.InternalError:
-		return http.StatusInternalServerError
-	case errors.NotFoundError:
-		return http.StatusNotFound
-	case set.InvalidArgError:
-		return http.StatusBadRequest
-	case set.InvalidStateError:
-		return http.StatusConflict
-	default:
-		return http.StatusInternalServerError
 	}
 }

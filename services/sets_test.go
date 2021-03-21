@@ -249,44 +249,6 @@ func checkNewGame(g0 *set.Game, usernames ...string) error {
 	return nil
 }
 
-// checkNextGame validates that g1 is a valid next state of g0
-func checkNextGame(g0, g1 *set.Game) error {
-	if g0.ID != g1.ID {
-		return fmt.Errorf("Expected g0 ID %s to equal g1 ID %s", g0.ID, g1.ID)
-	}
-	if g0.GetState() == set.Playing {
-		if g1.GetState() != set.SetClaimed {
-			return fmt.Errorf("Expected g1 State to be SetClaimed")
-		}
-	} else {
-		if g1.GetState() != set.Playing {
-			return fmt.Errorf("Expected g1 State to be Playing")
-		}
-	}
-	// TODO? we could check invariants on players, scores, deck size, etc...
-	return nil
-}
-
-func gameMap(gs ...*set.Game) map[uuid.UUID]*set.Game {
-	m := make(map[uuid.UUID]*set.Game)
-	for _, g := range gs {
-		m[g.ID] = g
-	}
-	return m
-}
-
-func claimPayload(username string, cs set.CardTriple) []byte {
-	cd := claimData{
-		Username: username,
-		Cards:    cs,
-	}
-	payload, err := json.Marshal(&cd)
-	if err != nil {
-		panic(fmt.Sprintf("Unexpected Marshal err: %s", err))
-	}
-	return payload
-}
-
 func doRequest(
 	tr *router.TableRouter,
 	method, target string,

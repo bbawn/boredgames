@@ -25,7 +25,7 @@ func testRooms(t *testing.T, rms Rooms) {
 	}
 
 	// Insert room with players
-	r0 := rooms.NewRoom("r0", "p0", "p1")
+	r0 := rooms.NewRoom("r0", map[string]bool{"p0": true, "p1": true})
 	err = rms.Insert(r0)
 	if err != nil {
 		t.Errorf("Unexpected err %s on Insert", err)
@@ -39,7 +39,7 @@ func testRooms(t *testing.T, rms Rooms) {
 	}
 
 	// Insert room without players
-	r1 := rooms.NewRoom("r1")
+	r1 := rooms.NewRoom("r1", map[string]bool{})
 	err = rms.Insert(r1)
 	if err != nil {
 		t.Errorf("Unexpected err %s on Insert", err)
@@ -70,11 +70,33 @@ func testRooms(t *testing.T, rms Rooms) {
 		t.Errorf("List returned %#v, expected %#v", rs, expRs)
 	}
 
-	// Update existing room
-	r0.Usernames = append(r0.Usernames, "p2")
-	err = rms.Update(r0)
+	// Add player to room
+	r0.Usernames["p2"] = true
+	r, err = rms.AddPlayer(r0.Name, "p2")
 	if err != nil {
-		t.Errorf("Unexpected err %s on Update", err)
+		t.Errorf("Unexpected err %s on AddPlayer", err)
+	}
+	if !reflect.DeepEqual(r, r0) {
+		t.Errorf("Get returned %#v, expected %#v", r, r0)
+	}
+
+	// Retrieve existing room
+	r, err = rms.Get(r0.Name)
+	if err != nil {
+		t.Errorf("Unexpected err %s on Get", err)
+	}
+	if !reflect.DeepEqual(r, r0) {
+		t.Errorf("Get returned %#v, expected %#v", r, r0)
+	}
+
+	// Remove player from room
+	delete(r0.Usernames, "p2")
+	r, err = rms.DeletePlayer(r0.Name, "p2")
+	if err != nil {
+		t.Errorf("Unexpected err %s on DeletePlayer", err)
+	}
+	if !reflect.DeepEqual(r, r0) {
+		t.Errorf("Get returned %#v, expected %#v", r, r0)
 	}
 
 	// Retrieve existing room
@@ -97,13 +119,6 @@ func testRooms(t *testing.T, rms Rooms) {
 	_, ok = err.(errors.NotFoundError)
 	if !ok {
 		t.Errorf("Expected Get err %s to be of type NotFoundError", err)
-	}
-
-	// Update non-existing room
-	err = rms.Update(r0)
-	_, ok = err.(errors.NotFoundError)
-	if !ok {
-		t.Errorf("Expected Update err %s to be of type NotFoundError", err)
 	}
 
 	// Delete non-existing room
