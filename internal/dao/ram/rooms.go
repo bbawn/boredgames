@@ -15,7 +15,7 @@ import (
 // Rooms is the collection of fake dao roomms
 type Rooms struct {
 	m sync.RWMutex
-	// rooms stores json-serialized set Rooms
+	// rooms stores json-serialized set Rooms keyed on name
 	// This avoids future shared-object confusion if we used unserialized Rooms
 	rooms map[string][]byte
 }
@@ -33,7 +33,7 @@ func (rms *Rooms) List() ([]*rooms.Room, error) {
 		var r *rooms.Room
 		err := json.Unmarshal(jRoom, &r)
 		if err != nil {
-			return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s", jRoom)}
+			return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s", jRoom)}
 		}
 		rs = append(rs, r)
 	}
@@ -45,11 +45,11 @@ func (rms *Rooms) Insert(r *rooms.Room) error {
 	defer rms.m.Unlock()
 	jRoom, ok := rms.rooms[r.Name]
 	if ok {
-		return errors.AlreadyExistsError{r.Name}
+		return errors.AlreadyExistsError{Key: r.Name}
 	}
 	jRoom, err := json.Marshal(r)
 	if err != nil {
-		return errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+		return errors.InternalError{Details: fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
 	rms.rooms[r.Name] = jRoom
 	return nil
@@ -60,12 +60,12 @@ func (rms *Rooms) Get(name string) (*rooms.Room, error) {
 	defer rms.m.Unlock()
 	jRoom, ok := rms.rooms[name]
 	if !ok {
-		return nil, errors.NotFoundError{name}
+		return nil, errors.NotFoundError{Key: name}
 	}
 	var r *rooms.Room
 	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
+		return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	return r, nil
 }
@@ -74,7 +74,7 @@ func (rms *Rooms) Delete(name string) error {
 	rms.m.Lock()
 	defer rms.m.Unlock()
 	if _, ok := rms.rooms[name]; !ok {
-		return errors.NotFoundError{name}
+		return errors.NotFoundError{Key: name}
 	}
 	delete(rms.rooms, name)
 	return nil
@@ -85,20 +85,20 @@ func (rms *Rooms) AddPlayer(name, username string) (*rooms.Room, error) {
 	defer rms.m.Unlock()
 	jRoom, ok := rms.rooms[name]
 	if !ok {
-		return nil, errors.NotFoundError{name}
+		return nil, errors.NotFoundError{Key: name}
 	}
 	var r *rooms.Room
 	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
+		return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	if _, ok := r.Usernames[username]; ok {
-		return nil, errors.AlreadyExistsError{username}
+		return nil, errors.AlreadyExistsError{Key: username}
 	}
 	r.Usernames[username] = true
 	jRoom, err = json.Marshal(r)
 	if err != nil {
-		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+		return r, errors.InternalError{Details: fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
 	rms.rooms[r.Name] = jRoom
 	return r, nil
@@ -109,21 +109,21 @@ func (rms *Rooms) DeletePlayer(name, username string) (*rooms.Room, error) {
 	defer rms.m.Unlock()
 	jRoom, ok := rms.rooms[name]
 	if !ok {
-		return nil, errors.NotFoundError{name}
+		return nil, errors.NotFoundError{Key: name}
 	}
 	var r *rooms.Room
 	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
+		return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	if _, ok := r.Usernames[username]; !ok {
-		return nil, errors.NotFoundError{username}
+		return nil, errors.NotFoundError{Key: username}
 	}
 	// Remove element from players
 	delete(r.Usernames, username)
 	jRoom, err = json.Marshal(r)
 	if err != nil {
-		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+		return r, errors.InternalError{Details: fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
 	rms.rooms[r.Name] = jRoom
 	return r, nil
@@ -134,18 +134,18 @@ func (rms *Rooms) SetGame(name string, typ rooms.GameType, id uuid.UUID) (*rooms
 	defer rms.m.Unlock()
 	jRoom, ok := rms.rooms[name]
 	if !ok {
-		return nil, errors.NotFoundError{name}
+		return nil, errors.NotFoundError{Key: name}
 	}
 	var r *rooms.Room
 	err := json.Unmarshal(jRoom, &r)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
+		return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jRoom, err)}
 	}
 	r.GameType = typ
 	r.GameID = id
 	jRoom, err = json.Marshal(r)
 	if err != nil {
-		return r, errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
+		return r, errors.InternalError{Details: fmt.Sprintf("Could not Marshal json game: %s err %s", r.Name, err)}
 	}
 	rms.rooms[r.Name] = jRoom
 	return r, nil
