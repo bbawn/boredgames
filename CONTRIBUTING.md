@@ -1,6 +1,6 @@
 ## Dependencies
 
-* [golang](https://golang.org/doc/install)
+- [golang](https://golang.org/doc/install)
 
 ## Run Tests
 

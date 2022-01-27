@@ -34,7 +34,8 @@ img {
   max-width: 100%;
 }
 
-.board-content:hover, .board-content:focus {
+.board-content:hover,
+.board-content:focus {
   /* XXX use bootstrap colors */
   color: #bad4f7;
   background: #124da1;
@@ -75,10 +76,10 @@ img {
 
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
