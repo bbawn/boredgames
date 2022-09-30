@@ -222,19 +222,19 @@ func TestSets(t *testing.T) {
 }
 
 // checkNewGame validates that the given game is in a valid initial state
-func checkNewGame(g0 *set.Game, usernames ...string) error {
-	if g0.ID.URN() == "" {
-		return fmt.Errorf("Invalid ID: %s", g0.ID)
+func checkNewGame(g *set.Game, usernames ...string) error {
+	if g.ID.URN() == "" {
+		return fmt.Errorf("Invalid ID: %s", g.ID)
 	}
-	if len(g0.Players) != len(usernames) {
-		return fmt.Errorf("Expected %d players, got %d", len(g0.Players), len(usernames))
+	if len(g.Players) != len(usernames) {
+		return fmt.Errorf("Expected %d players, got %d", len(g.Players), len(usernames))
 	}
 	for _, u := range usernames {
 		var (
 			p  *set.Player
 			ok bool
 		)
-		if p, ok = g0.Players[u]; !ok {
+		if p, ok = g.Players[u]; !ok {
 			return fmt.Errorf("Player with username %s not found", u)
 		}
 		if p.Username != u {

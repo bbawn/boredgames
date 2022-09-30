@@ -23,3 +23,7 @@ Documentation TBD, see [service source](services/sets.go) for now.
 ## TODO
 
 See [TODO](TODO.md).
+
+## Style Guide
+
+* Use https://jsonapi.org for JSON API conventions.

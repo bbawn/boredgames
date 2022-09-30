@@ -101,10 +101,10 @@ const (
 
 // Card is a set game card
 type Card struct {
-	Color   Color
-	Count   byte
-	Shading Shading
-	Shape   Shape
+	Color   Color   `json:"color"`
+	Count   byte    `json:"count"`
+	Shading Shading `json:"shading"`
+	Shape   Shape   `json:"shape"`
 }
 
 func (c *Card) UnmarshalJSON(b []byte) error {
@@ -253,18 +253,18 @@ func (b Board) FindCard(c Card) int {
 
 // Player is a participant in a set game
 type Player struct {
-	Username string
-	Sets     []CardTriple
+	Username string       `json:"username"`
+	Sets     []CardTriple `json:"sets"`
 }
 
 // Game is an instance of a set game
 type Game struct {
-	ID              uuid.UUID
-	Players         map[string]*Player
-	Deck            Deck
-	Board           Board
-	ClaimedSet      CardTriple
-	ClaimedUsername string
+	ID              uuid.UUID          `json:"id"`
+	Players         map[string]*Player `json:"players"`
+	Deck            Deck               `json:"deck"`
+	Board           Board              `json:"board"`
+	ClaimedSet      CardTriple         `json:"claimedSet"`
+	ClaimedUsername string             `json:"claimedUsername"`
 	// TODO(bbawn): do we need a logical timestamp field to detect stale operations?
 }
 

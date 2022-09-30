@@ -1,5 +1,10 @@
 ## TODO
 
+- Misc
+  - go modules
+  - docker (dev and runtime?)
+  - OpenAPI
+  - gRPC?
 - General framework
   - Implement api/rooms endpoint
     - POST /rooms
@@ -9,6 +14,7 @@
     - GET /rooms/:id/players
     - POST /rooms/:id/players
     - DEL /rooms/:id/players
+  - gorilla mux?
 - Set
   - Multi-player
   - Add handicap to any player

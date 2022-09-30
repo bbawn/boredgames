@@ -44,7 +44,7 @@ func (s *Sets) List(w http.ResponseWriter, r *http.Request) {
 }
 
 type createData struct {
-	Usernames []string
+	Usernames []string `json:"usernames"`
 }
 
 func (s *Sets) Create(w http.ResponseWriter, r *http.Request) {

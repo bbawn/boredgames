@@ -48,9 +48,9 @@ func (rms *Rooms) List(w http.ResponseWriter, r *http.Request) {
 // postData is the data payload of the create room request
 type postData struct {
 	// Name is human-readable identifier of the Room
-	Name string
+	Name string `json:"name"`
 	// Usernames is the set of players in the room
-	Usernames map[string]bool
+	Usernames map[string]bool `json:"usernames"`
 }
 
 func (pd *postData) validate() error {

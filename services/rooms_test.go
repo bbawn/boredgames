@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -66,21 +67,28 @@ func TestRooms(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/rooms", bytes.NewReader([]byte(d)))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, _ = ioutil.ReadAll(resp.Body)
-	g.Expect(string(body)).To(Equal(d))
-	var r1 *rooms.Room
-	dec := json.NewDecoder(resp.Body)
-	err := dec.Decode(&r1)
+	var expRoom, r1 *rooms.Room
+	err := json.Unmarshal(body, &r1)
 	g.Expect(err).To(BeNil())
+	err = json.Unmarshal([]byte(d), &expRoom)
+	g.Expect(err).To(BeNil())
+	if !reflect.DeepEqual(expRoom, r1) {
+		t.Errorf("Post returned %#v, expected %#v", r1, expRoom)
+	}
 
 	d = `{ "name": "n2", "usernames": {"p1": true, "p2": true, "p3": true } }`
 	resp = doRequest(tr, "POST", "http://example.com/rooms", bytes.NewReader([]byte(d)))
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, _ = ioutil.ReadAll(resp.Body)
-	g.Expect(string(body)).To(Equal(d))
 	var r2 *rooms.Room
-	dec = json.NewDecoder(resp.Body)
-	err = dec.Decode(&r2)
+	err = json.Unmarshal(body, &r2)
 	g.Expect(err).To(BeNil())
+	expRoom = nil
+	err = json.Unmarshal([]byte(d), &expRoom)
+	g.Expect(err).To(BeNil())
+	if !reflect.DeepEqual(expRoom, r2) {
+		t.Errorf("Post returned %#v, expected %#v", r2, expRoom)
+	}
 
 	t.Log("Fail to Get non-existent room")
 	uid := uuid.New()
@@ -94,7 +102,7 @@ func TestRooms(t *testing.T) {
 	resp = doRequest(tr, "GET", "http://example.com/rooms/"+r1.Name, nil)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	var r0 *rooms.Room
-	dec = json.NewDecoder(resp.Body)
+	dec := json.NewDecoder(resp.Body)
 	err = dec.Decode(&r0)
 	g.Expect(err).To(BeNil())
 	g.Expect(r0).To(Equal(r1))
@@ -120,7 +128,7 @@ func TestRooms(t *testing.T) {
 
 	t.Log("Fail to Delete non-existent room")
 	uid = uuid.New()
-	resp = doRequest(tr, "DEL", "http://example.com/rooms/nonexistent", nil)
+	resp = doRequest(tr, "DEL", "http://example.com/rooms/"+uid.String(), nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 	expBody = fmt.Sprintf("Failed to delete room from datastore: Key %s not found in datastore\n", uid.String())
