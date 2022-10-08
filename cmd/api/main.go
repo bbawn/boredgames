@@ -2,11 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httputil"
 
 	"github.com/bbawn/boredgames/internal/dao/ram"
 	"github.com/bbawn/boredgames/internal/router"
@@ -17,15 +15,10 @@ var addr = flag.String("addr", ":8080", "http service address")
 
 func logHandler(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		x, err := httputil.DumpRequest(r, true)
-		if err != nil {
-			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-			return
-		}
-		log.Println(fmt.Sprintf("%q", x))
+		log.Println("Request", r.Method, r.RequestURI)
 		rec := httptest.NewRecorder()
 		fn(rec, r)
-		log.Println(fmt.Sprintf("%q", rec.Body))
+		log.Println("Response StatusCode", rec.Result().StatusCode)
 
 		// this copies the recorded response to the response writer
 		for k, v := range rec.HeaderMap {
