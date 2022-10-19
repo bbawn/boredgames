@@ -20,11 +20,11 @@ function SetModel() {
         if (!response.ok) {
           console.log(
             "Network request for " +
-              url +
-              " failed with response " +
-              response.status +
-              ": " +
-              response.statusText
+            url +
+            " failed with response " +
+            response.status +
+            ": " +
+            response.statusText
           );
           reject();
         }
@@ -46,23 +46,23 @@ function SetModel() {
   // Claim a set from current board
   this.ClaimSet = function (username, set) {
     const d = { username: username, cards: [set[0], set[1], set[2]] };
-    return this.Call("POST", "/sets/" + this.game.ID + "/claim", d);
+    return this.Call("POST", "/sets/" + this.game.id + "/claim", d);
   };
 
   // Expand the board
   this.Expand = function () {
-    return this.Call("POST", "/sets/" + this.game.ID + "/expand");
+    return this.Call("POST", "/sets/" + this.game.id + "/expand");
   };
 
   // Start the next round
   this.Next = function () {
-    return this.Call("POST", "/sets/" + this.game.ID + "/next");
+    return this.Call("POST", "/sets/" + this.game.id + "/next");
   };
 }
 
 // getState returns the state of the game
 function getState(game) {
-  if (game.ClaimedUsername === "") {
+  if (game.claimedUsername === "") {
     return "Playing";
   } else {
     return "SetClaimed";
@@ -101,10 +101,10 @@ function setMessage(game) {
     message.appendChild(text);
   } else if (state == "SetClaimed") {
     const span = document.createElement("span");
-    let text = document.createTextNode(game.ClaimedUsername + " claimed ");
+    let text = document.createTextNode(game.claimedUsername + " claimed ");
     span.appendChild(text);
     message.appendChild(span);
-    for (const card of game.ClaimedSet) {
+    for (const card of game.claimedSet) {
       const img = document.createElement("img");
       img.className = "message-img";
       img.alt = card;
@@ -124,12 +124,12 @@ function createBoard(game) {
     row.id = "r" + i;
     row.className = "board-row";
     board.appendChild(row);
-    const nCols = game.Board.length / 3;
+    const nCols = game.board.length / 3;
     for (let j = 0; j < nCols; j++) {
       const cell = document.createElement("td");
       const a = document.createElement("a");
       const img = document.createElement("img");
-      const card = game.Board[i * nCols + j] || `empty_card`;
+      const card = game.board[i * nCols + j] || `empty_card`;
       img.alt = card;
       img.src = "/img/" + card + ".gif";
       cell.className = "board-img";
@@ -170,7 +170,7 @@ function createScorecard(game) {
   scorecard.appendChild(head);
 
   console.log("createScorecard: game", game);
-  for (const [username, player] of Object.entries(game.Players)) {
+  for (const [username, player] of Object.entries(game.players)) {
     const row = document.createElement("tr");
     let cell = document.createElement("td");
     cell.className = "score-cell";
@@ -190,7 +190,7 @@ function createScorecard(game) {
     row.appendChild(cell);
     cell = document.createElement("td");
     cell.className = "score-cell";
-    cellText = document.createTextNode(player.Sets.length);
+    cellText = document.createTextNode(player.sets.length);
     cell.appendChild(cellText);
     row.appendChild(cell);
     scorecard.appendChild(row);
@@ -259,7 +259,7 @@ function cancelMachineTimer() {
 
 function machineClaim() {
   console.log(Date.now(), "machineClaim");
-  const set = findSet(model.game.Board);
+  const set = findSet(model.game.board);
   if (!set) {
     console.log("machine failed to find a set");
     return;
