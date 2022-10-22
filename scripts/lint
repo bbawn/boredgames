@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Run all linters and checkers
+
+go vet ./...
+staticcheck ./...
+eslint ui
+prettier ui
