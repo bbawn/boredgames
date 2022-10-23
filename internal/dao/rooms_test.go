@@ -22,6 +22,9 @@ func testRooms(t *testing.T, rms Rooms) {
 	// Empty list
 	expRs := []*rooms.Room{}
 	rs, err := rms.List()
+	if err != nil {
+		t.Errorf("List returned unexpected err %#v", err)
+	}
 	if !roomsEqual(rs, expRs) {
 		t.Errorf("List returned %#v, expected %#v", rs, expRs)
 	}
@@ -68,6 +71,9 @@ func testRooms(t *testing.T, rms Rooms) {
 	// List all rooms
 	expRs = []*rooms.Room{r0, r1}
 	rs, err = rms.List()
+	if err != nil {
+		t.Errorf("List returned unexpected err %#v", err)
+	}
 	if !roomsEqual(rs, expRs) {
 		t.Errorf("List returned %#v, expected %#v", rs, expRs)
 	}
@@ -137,7 +143,7 @@ func testRooms(t *testing.T, rms Rooms) {
 	}
 
 	// Retrieve non-existing room
-	r, err = rms.Get(r0.Name)
+	_, err = rms.Get(r0.Name)
 	_, ok = err.(errors.NotFoundError)
 	if !ok {
 		t.Errorf("Expected Get err %s to be of type NotFoundError", err)

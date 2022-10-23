@@ -113,23 +113,23 @@ func (c *Card) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	if len(s) != 4 {
-		return fmt.Errorf("Card string must have len 4: %s", s)
+		return fmt.Errorf("card string must have len 4: %s", s)
 	}
 	color := abbrToColor(s[0:1])
-	if color < 0 {
-		return fmt.Errorf("Invalid color abbreviation: %c", s[0])
+	if color == math.MaxUint8 {
+		return fmt.Errorf("invalid color abbreviation: %c", s[0])
 	}
 	count, err := strconv.Atoi(s[1:2])
 	if err != nil {
-		return fmt.Errorf("Invalid count: %c", s[1])
+		return fmt.Errorf("invalid count: %c", s[1])
 	}
 	shading := abbrToShading(s[2:3])
-	if shading < 0 {
-		return fmt.Errorf("Invalid shading abbreviation: %c", s[2])
+	if shading == math.MaxUint8 {
+		return fmt.Errorf("invalid shading abbreviation: %c", s[2])
 	}
 	shape := abbrToShape(s[3:])
-	if color < 0 {
-		return fmt.Errorf("Invalid color abbreviation: %c", s[3])
+	if color == math.MaxUint8 {
+		return fmt.Errorf("invalid color abbreviation: %c", s[3])
 	}
 	*c = Card{color, byte(count), shading, shape}
 	return nil
@@ -229,7 +229,7 @@ func (b Board) FindSet(set bool) *CardTriple {
 // FindExpandSet return a set on the board, expanding until one is found
 // or the game's deck is exhausted
 func (g *Game) FindExpandSet() *CardTriple {
-	for true {
+	for {
 		s := g.Board.FindSet(true)
 		if s != nil {
 			return s
@@ -238,7 +238,6 @@ func (g *Game) FindExpandSet() *CardTriple {
 			return nil
 		}
 	}
-	panic("unreachable")
 }
 
 // FindCard returns the index of the given card on the Board or -1 if not found
@@ -303,7 +302,7 @@ func NewGame(usernames ...string) (*Game, error) {
 		g.Players[u] = &Player{Username: u, Sets: []CardTriple{}}
 	}
 	g.Deck = make([]*Card, FullDeckLen)
-	for i, _ := range g.Deck {
+	for i := range g.Deck {
 		g.Deck[i] = CardBase3ToCard(CardBase3(i))
 	}
 	rand.Shuffle(len(g.Deck), func(i, j int) {
@@ -311,7 +310,7 @@ func NewGame(usernames ...string) (*Game, error) {
 	})
 	// Deal cards from deck to board
 	g.Board = make([]*Card, InitBoardLen)
-	for i, _ := range g.Board {
+	for i := range g.Board {
 		g.Board[i] = g.Deck.Pop()
 	}
 	return g, nil
@@ -397,7 +396,7 @@ func (g *Game) NextRound() error {
 		g.compress()
 	} else {
 		// Deal from deck to replace empty card slots
-		for i, _ := range g.Board {
+		for i := range g.Board {
 			if g.Board[i] == nil {
 				if len(g.Deck) > 0 {
 					g.Board[i] = g.Deck.Pop()
@@ -427,7 +426,7 @@ func (g *Game) GetState() State {
 // Compess removes empty cards from the game board
 func (g *Game) compress() {
 	newBoard := []*Card{}
-	for i, _ := range g.Board {
+	for i := range g.Board {
 		if g.Board[i] != nil {
 			newBoard = append(newBoard, g.Board[i])
 		}

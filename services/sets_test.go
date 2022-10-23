@@ -34,24 +34,21 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal create data:")
-	g.Expect(string(body)).To(HavePrefix(expBody))
+	g.Expect(string(body)).To(HavePrefix("Failed to unmarshal create data:"))
 
 	t.Log("Create a game with invalid json payload")
 	d := `foo`
 	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal create data:")
-	g.Expect(string(body)).To(HavePrefix(expBody))
+	g.Expect(string(body)).To(HavePrefix("Failed to unmarshal create data:"))
 
 	t.Log("Create a game with empty username")
 	d = `{ "usernames": [ "p1", "", "p3" ] }`
 	resp = doRequest(tr, "POST", "http://example.com/sets", bytes.NewReader([]byte(d)))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to create new game: Invalid value: empty for arg: username\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to create new game: Invalid value: empty for arg: username\n"))
 
 	t.Log("Create a couple of games")
 	d = `{ "usernames": [ "p1", "p2", "p3" ] }`
@@ -128,8 +125,7 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusConflict))
-	expBody = fmt.Sprintf("Failed to advance game to next round: Invalid method: NextRound detail: round not yet claimed\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to advance game to next round: Invalid method: NextRound detail: round not yet claimed\n"))
 
 	t.Log("Expand a set")
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/expand", nil)
@@ -143,24 +139,21 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal claim data: EOF\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to unmarshal claim data: EOF\n"))
 
 	t.Log("Claim a set with invalid json payload")
 	payload := []byte(`foo`)
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal claim data: invalid character 'o' in literal false (expecting 'a')\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to unmarshal claim data: invalid character 'o' in literal false (expecting 'a')\n"))
 
 	t.Log("Claim a set with invalid card values")
 	payload = []byte(`{ "username": "p1", "cards": [ "foo", "bar", "baz" ] }`)
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal claim data: Card string must have len 4: foo\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to unmarshal claim data: card string must have len 4: foo\n"))
 
 	s1 := g1.FindExpandSet()
 	t.Log("Claim a set with invalid username in payload")
@@ -168,8 +161,7 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to claim set in game: Invalid value: nonplayer for arg: username\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to claim set in game: Invalid value: nonplayer for arg: username\n"))
 
 	t.Log("Claim a set with non-set in payload (penalty)")
 	nonset := g1.Board.FindSet(false)
@@ -200,15 +192,13 @@ func TestSets(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/claim", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusConflict))
-	expBody = fmt.Sprintf("Failed to claim set in game: Invalid method: ClaimSet detail: round already claimed by p1\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to claim set in game: Invalid method: ClaimSet detail: round already claimed by p1\n"))
 
 	t.Log("Expand a set in invalid game state")
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/expand", bytes.NewReader(payload))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusConflict))
-	expBody = fmt.Sprintf("Failed to expand game board: Invalid method: Expand detail: only valid in claim state\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Failed to expand game board: Invalid method: Expand detail: only valid in claim state\n"))
 
 	t.Log("Valid Next round request")
 	resp = doRequest(tr, "POST", "http://example.com/sets/"+g1.ID.String()+"/next", nil)

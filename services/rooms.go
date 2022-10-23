@@ -134,7 +134,7 @@ func (rms *Rooms) Delete(w http.ResponseWriter, r *http.Request) {
 
 // playerData is the payload of the post and delete room player requests
 type playerData struct {
-	username string
+	Username string
 }
 
 // AddPlayer adds a player to the room
@@ -151,7 +151,7 @@ func (rms *Rooms) AddPlayer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to unmarshal player data: %s", err), http.StatusBadRequest)
 		return
 	}
-	room, err := rms.dao.AddPlayer(name, pd.username)
+	room, err := rms.dao.AddPlayer(name, pd.Username)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to add player into datastore: %s", err), httpStatus(err))
 		return
@@ -178,7 +178,7 @@ func (rms *Rooms) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to unmarshal player data: %s", err), http.StatusBadRequest)
 		return
 	}
-	room, err := rms.dao.DeletePlayer(name, pd.username)
+	room, err := rms.dao.DeletePlayer(name, pd.Username)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to delete player from datastore: %s", err), httpStatus(err))
 		return
@@ -193,8 +193,8 @@ func (rms *Rooms) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 
 // gameData is the payload of the game update PUT request
 type gameData struct {
-	typ rooms.GameType
-	id  uuid.UUID
+	Typ rooms.GameType
+	ID  uuid.UUID
 }
 
 // SetGame sets the game type and id for the room
@@ -211,7 +211,7 @@ func (rms *Rooms) SetGame(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to unmarshal game data: %s", err), http.StatusBadRequest)
 		return
 	}
-	room, err := rms.dao.SetGame(name, gd.typ, gd.id)
+	room, err := rms.dao.SetGame(name, gd.Typ, gd.ID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update game: %s", err), httpStatus(err))
 		return

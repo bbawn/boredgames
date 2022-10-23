@@ -43,7 +43,7 @@ func (rms *Rooms) List() ([]*rooms.Room, error) {
 func (rms *Rooms) Insert(r *rooms.Room) error {
 	rms.m.Lock()
 	defer rms.m.Unlock()
-	jRoom, ok := rms.rooms[r.Name]
+	_, ok := rms.rooms[r.Name]
 	if ok {
 		return errors.AlreadyExistsError{Key: r.Name}
 	}
@@ -159,14 +159,4 @@ func (rms *Rooms) Dump() string {
 		b.WriteString(fmt.Sprintf("name %s: room %s\n", name, room))
 	}
 	return b.String()
-}
-
-// find returns the index of given string in given slice of -1 for not found
-func find(ss []string, s string) int {
-	for i, elt := range ss {
-		if elt == s {
-			return i
-		}
-	}
-	return -1
 }

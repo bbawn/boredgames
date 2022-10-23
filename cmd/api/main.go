@@ -21,7 +21,7 @@ func logHandler(fn http.HandlerFunc) http.HandlerFunc {
 		log.Println("Response StatusCode", rec.Result().StatusCode)
 
 		// this copies the recorded response to the response writer
-		for k, v := range rec.HeaderMap {
+		for k, v := range rec.Result().Header {
 			w.Header()[k] = v
 		}
 		w.WriteHeader(rec.Code)

@@ -32,7 +32,7 @@ func (s *Sets) List() ([]*set.Game, error) {
 		var g *set.Game
 		err := json.Unmarshal(jGame, &g)
 		if err != nil {
-			return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s", jGame)}
+			return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s", jGame)}
 		}
 		gs = append(gs, g)
 	}
@@ -42,13 +42,13 @@ func (s *Sets) List() ([]*set.Game, error) {
 func (s *Sets) Insert(g *set.Game) error {
 	s.m.Lock()
 	defer s.m.Unlock()
-	jGame, ok := s.sets[g.ID]
+	_, ok := s.sets[g.ID]
 	if ok {
-		return errors.AlreadyExistsError{g.ID.String()}
+		return errors.AlreadyExistsError{Key: g.ID.String()}
 	}
 	jGame, err := json.Marshal(g)
 	if err != nil {
-		return errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s err %s", g.ID, err)}
+		return errors.InternalError{Details: fmt.Sprintf("Could not Marshal json game: %s err %s", g.ID, err)}
 	}
 	s.sets[g.ID] = jGame
 	return nil
@@ -59,12 +59,12 @@ func (s *Sets) Get(uuid uuid.UUID) (*set.Game, error) {
 	defer s.m.Unlock()
 	jGame, ok := s.sets[uuid]
 	if !ok {
-		return nil, errors.NotFoundError{uuid.String()}
+		return nil, errors.NotFoundError{Key: uuid.String()}
 	}
 	var g *set.Game
 	err := json.Unmarshal(jGame, &g)
 	if err != nil {
-		return nil, errors.InternalError{fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
+		return nil, errors.InternalError{Details: fmt.Sprintf("Could not Unmarshal json game: %s err: %s", jGame, err)}
 	}
 	return g, nil
 }
@@ -72,13 +72,13 @@ func (s *Sets) Get(uuid uuid.UUID) (*set.Game, error) {
 func (s *Sets) Update(g *set.Game) error {
 	s.m.Lock()
 	defer s.m.Unlock()
-	jGame, ok := s.sets[g.ID]
+	_, ok := s.sets[g.ID]
 	if !ok {
-		return errors.NotFoundError{g.ID.String()}
+		return errors.NotFoundError{Key: g.ID.String()}
 	}
 	jGame, err := json.Marshal(g)
 	if err != nil {
-		return errors.InternalError{fmt.Sprintf("Could not Marshal json game: %s", g.ID)}
+		return errors.InternalError{Details: fmt.Sprintf("Could not Marshal json game: %s", g.ID)}
 	}
 	s.sets[g.ID] = jGame
 	return nil
@@ -88,7 +88,7 @@ func (s *Sets) Delete(uuid uuid.UUID) error {
 	s.m.Lock()
 	defer s.m.Unlock()
 	if _, ok := s.sets[uuid]; !ok {
-		return errors.NotFoundError{uuid.String()}
+		return errors.NotFoundError{Key: uuid.String()}
 	}
 	delete(s.sets, uuid)
 	return nil

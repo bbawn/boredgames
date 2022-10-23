@@ -35,32 +35,28 @@ func TestRooms(t *testing.T) {
 	resp = doRequest(tr, "POST", "http://example.com/rooms", nil)
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal create data:")
-	g.Expect(string(body)).To(HavePrefix(expBody))
+	g.Expect(string(body)).To(HavePrefix("Failed to unmarshal create data:"))
 
 	t.Log("Create a room with invalid json payload")
 	d := `foo`
 	resp = doRequest(tr, "POST", "http://example.com/rooms", bytes.NewReader([]byte(d)))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Failed to unmarshal create data:")
-	g.Expect(string(body)).To(HavePrefix(expBody))
+	g.Expect(string(body)).To(HavePrefix("Failed to unmarshal create data:"))
 
 	t.Log("Create a room with no name")
 	d = `{ "usernames": {"p1": true, "p2": true } }`
 	resp = doRequest(tr, "POST", "http://example.com/rooms", bytes.NewReader([]byte(d)))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Invalid request payload err: non-empty Name is required\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Invalid request payload err: non-empty Name is required\n"))
 
 	t.Log("Create a room with empty username")
 	d = `{ "name": "n1", "usernames": {"p1": true, "": true, "p3": true } }`
 	resp = doRequest(tr, "POST", "http://example.com/rooms", bytes.NewReader([]byte(d)))
 	body, _ = ioutil.ReadAll(resp.Body)
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
-	expBody = fmt.Sprintf("Invalid request payload err: usernames must be non-empty\n")
-	g.Expect(string(body)).To(Equal(expBody))
+	g.Expect(string(body)).To(Equal("Invalid request payload err: usernames must be non-empty\n"))
 
 	t.Log("Create a couple of valid rooms")
 	d = `{ "name": "n1", "usernames": {"p0": true, "p2": true} }`

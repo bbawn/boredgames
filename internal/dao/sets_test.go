@@ -24,6 +24,9 @@ func daoTest(t *testing.T, s Sets) {
 	// Empty list
 	expGs := []*set.Game{}
 	gs, err := s.List()
+	if err != nil {
+		t.Errorf("List returned error %#v", err)
+	}
 	if !gamesEqual(gs, expGs) {
 		t.Errorf("List returned %#v, expected %#v", gs, expGs)
 	}
@@ -70,6 +73,9 @@ func daoTest(t *testing.T, s Sets) {
 	// List all games
 	expGs = []*set.Game{g0, g1}
 	gs, err = s.List()
+	if err != nil {
+		t.Errorf("List returned error %#v", err)
+	}
 	if !gamesEqual(gs, expGs) {
 		t.Errorf("List returned %#v, expected %#v", gs, expGs)
 	}
@@ -98,7 +104,7 @@ func daoTest(t *testing.T, s Sets) {
 	}
 
 	// Retrieve non-existing game
-	g, err = s.Get(g0.ID)
+	_, err = s.Get(g0.ID)
 	_, ok = err.(errors.NotFoundError)
 	if !ok {
 		t.Errorf("Expected Get err %s to be of type NotFoundError", err)
