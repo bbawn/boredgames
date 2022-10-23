@@ -20,11 +20,11 @@ function SetModel() {
         if (!response.ok) {
           console.log(
             "Network request for " +
-            url +
-            " failed with response " +
-            response.status +
-            ": " +
-            response.statusText
+              url +
+              " failed with response " +
+              response.status +
+              ": " +
+              response.statusText
           );
           reject();
         }
@@ -200,10 +200,7 @@ function createScorecard(game) {
 
 function onHandicapInput(e) {
   model.config.machineHandicap = parseInt(e.target.value);
-  console.log(
-    "onHandicapInpute machineHandicap",
-    model.config.machineHandicap
-  );
+  console.log("onHandicapInpute machineHandicap", model.config.machineHandicap);
 }
 
 function toggleCellSelected(ev) {
@@ -247,10 +244,7 @@ function scheduleMachineTimer() {
     model.config.machineHandicap
   );
   clearTimeout(machineTimer);
-  machineTimer = setTimeout(
-    machineClaim,
-    model.config.machineHandicap * 1000
-  );
+  machineTimer = setTimeout(machineClaim, model.config.machineHandicap * 1000);
 }
 
 function cancelMachineTimer() {
