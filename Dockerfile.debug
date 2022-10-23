@@ -1,11 +1,10 @@
 # syntax=docker/dockerfile:1
 
-#FROM golang:1.19-alpine3.16
-FROM golang
+FROM golang:1.16-buster AS build
 
 WORKDIR /app
 
-RUN go install github.com/go-delve/delve/cmd/dlv@latest
+RUN go install github.com/go-delve/delve/cmd/dlv@v1.8
 
 COPY go.mod ./
 COPY go.sum ./
@@ -15,5 +14,5 @@ COPY . .
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/bin/sh" ]
+ENTRYPOINT [ "bash" ]
 # ENTRYPOINT [ "/go/bin/dlv", "debug", "cmd/api/main.go" ]
