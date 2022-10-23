@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ## Build
-FROM golang:1.19-alpine3.16 AS build
+FROM golang:1.16-buster AS build
 
 WORKDIR /app
 
@@ -11,10 +11,10 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /boredgames cmd/api
+RUN go build -o /boredgames cmd/api/main.go
 
 ## Deploy
-FROM alpine:3.16
+FROM gcr.io/distroless/base-debian10
 
 WORKDIR /
 

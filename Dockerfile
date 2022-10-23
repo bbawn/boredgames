@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang
+FROM golang:1.16-alpine
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /boredgames cmd/api
+RUN go build -o /boredgames cmd/api/main.go
 
 EXPOSE 8080
 
