@@ -180,7 +180,7 @@ function createScorecard(game) {
     cell = document.createElement("td");
     cell.className = "score-cell";
     if (username.toLowerCase() === "machine") {
-      cellInput = document.createElement("input");
+      let cellInput = document.createElement("input");
       cellInput.type = "number";
       cellInput.value = model.config.machineHandicap;
       cellInput.addEventListener("input", onHandicapInput);
