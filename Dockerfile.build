@@ -11,14 +11,14 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /boredgames cmd/api/main.go
+RUN go build -o bin/boredgames-build cmd/api/main.go
 
 ## Deploy
 FROM gcr.io/distroless/base-debian10
 
 WORKDIR /
 
-COPY --from=build /boredgames /boredgames
+COPY --from=build /app/bin/boredgames-build /boredgames
 COPY --from=build /app/ui /ui
 
 EXPOSE 8080
